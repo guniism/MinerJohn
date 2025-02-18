@@ -37,46 +37,64 @@ public class GamePane extends Pane {
 	private void move() {
 		double dx = 0, dy = 0;
 		if (GameController.getKeyboardController().isMoveUp()) {
-			dy -= this.player.getSpeed();
+			if (this.player.getY()  >= 180) {
+				dy -= this.player.getSpeed();
+	        }
+			else {
+				dy =0;
+			}
 		}
 		if (GameController.getKeyboardController().isMoveDown()) {
-			dy += this.player.getSpeed();
+			if (this.player.getY()  <= 900) {
+				dy += this.player.getSpeed();
+	        }
+			else {
+				dy =0;
+			}
+
 		}
 		if (GameController.getKeyboardController().isMoveLeft()) {
-			dx -= this.player.getSpeed();
+			if (this.player.getX() + this.getLayoutX() >= 3*16*GameController.getScale()) {
+	            dx -= this.player.getSpeed();
+	        }
+			else {
+				dx =0;
+			}
+			
 		}
 		if (GameController.getKeyboardController().isMoveRight()) {
-			dx += this.player.getSpeed();
+			if (this.player.getX() <= 2258) {
+	            dx += this.player.getSpeed();
+	        }
+			else {
+				dx =0;
+			}
 		}
 
 		// แก้เดินแนวทแยง
 		if (dx != 0 || dy != 0) {
 			double length = Math.sqrt(dx * dx + dy * dy);
 			dx = (dx / length) * this.player.getSpeed();
-			;
 			dy = (dy / length) * this.player.getSpeed();
-			;
-		}
-		
-//		System.out.println(this.isOutMapX + ", " + 
-//			this.isOutMapY + ", " + 
-//			this.getLayoutX() + ", " + 
-//			this.getLayoutY() + ", " + 
-//			this.player.getX() + ", " + 
-//			this.player.getY()
-//		);
-		
-		System.out.println(this.player.getX() + this.getLayoutX() + ", " + playerCenterAbsX);
-		if(this.getLayoutX() - dx >= 0) {
-			this.setLayoutX(0);
-		}
-//		this.player.getX() + this.getLayoutX() คือ Absolute Position
-		else if(this.player.getX() + this.getLayoutX() == playerCenterAbsX) {
-			this.setLayoutX(this.getLayoutX() - dx);
 		}
 
-		this.setLayoutY(this.getLayoutY() - dy);
+		double newLayoutX = playerCenterAbsX - this.player.getX();
+		double newLayoutY = playerCenterAbsY - this.player.getY();
+		if (newLayoutX > 0) {
+			newLayoutX = 0;
+		} else if (newLayoutX < -1440) {
+			newLayoutX = -1440;
+		}
+		if (newLayoutY > 0) {
+			newLayoutY = 0;
+		} else if (newLayoutY < -540) {
+			newLayoutY = -540;
+		}
 
+		this.setLayoutX(newLayoutX);
+		this.setLayoutY(newLayoutY);
+
+		// Move Player
 		this.player.setX(this.player.getX() + dx);
 		this.player.setY(this.player.getY() + dy);
 		this.player.setLayoutX(this.player.getX());
