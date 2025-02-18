@@ -15,10 +15,10 @@ public class Player extends Canvas {
 	
 	public Player() {
 		WIDTH = 16 * GameController.getScale();
-		HEIGHT = 16 * GameController.getScale();
-		setSpeed(10);
-		setX(960/2);
-		setY(720/2);
+		HEIGHT = 32 * GameController.getScale();
+		setSpeed(2 * GameController.getScale());
+		setX(1080/2 - WIDTH/2);
+		setY(720/2 - HEIGHT/2 - HEIGHT/4);
 		
 		draw();
 	}
