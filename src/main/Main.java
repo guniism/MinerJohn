@@ -1,23 +1,21 @@
 package main;
 
-
-import game.GameController;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import ui.StartPage;
 
-public class Main extends Application{
+public class Main extends Application {
 
+    @Override
+    public void start(Stage primaryStage) throws Exception {
 
-	@Override
-	public void start(Stage primaryStage) throws Exception {
-		// TODO Auto-generated method stub
-		GameController.setUpScene();
-		primaryStage.setTitle("Miner John");
-		primaryStage.setScene(GameController.getScene());
-		primaryStage.show();
+        StartPage.showStartPage(primaryStage);
+        
+        primaryStage.setTitle("Miner John");
+        
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent e) {
@@ -26,12 +24,9 @@ public class Main extends Application{
             }
         });
 		primaryStage.setResizable(false);
+    }
 
-	}
-	
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		launch(args);
-	}
-
+    public static void main(String[] args) {
+        launch(args);
+    }
 }
