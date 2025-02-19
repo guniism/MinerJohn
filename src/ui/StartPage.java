@@ -17,6 +17,7 @@ public class StartPage extends StackPane {
 
         MainMenuPane bg= new MainMenuPane();
         bg.setAlignment(Pos.CENTER);
+
         VBox buttonContainer = new VBox();
         buttonContainer.setAlignment(Pos.CENTER);
         this.setTranslateY(-23);
@@ -42,9 +43,9 @@ public class StartPage extends StackPane {
 
     public static void showStartPage(Stage primaryStage) {
     	String path = ClassLoader.getSystemResource("start_bg.png").toString();
-		Image boy = new Image(path);
+		Image bg = new Image(path);
         StartPage startPage = new StartPage(primaryStage);
-        Scene startScene = new Scene(startPage, boy.getWidth() * GameController.getScale(), boy.getHeight() * GameController.getScale());
+        Scene startScene = new Scene(startPage, bg.getWidth() * GameController.getScale(), bg.getHeight() * GameController.getScale());
         primaryStage.setScene(startScene);
         primaryStage.show();
     }
