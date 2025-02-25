@@ -1,11 +1,7 @@
 package game;
 
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
-import world.Map;
 
 public class GameController {
     private static final int SCREEN_WIDTH = 1080;
@@ -17,7 +13,7 @@ public class GameController {
 	
 	
 	public static void setUpScene() {
-		Pane root = new GamePane();
+		Pane root = new MainPane();
 
         scene = new Scene(root, SCREEN_WIDTH, SCREEN_HEIGHT);
         keyboardController = new KeyboardController();

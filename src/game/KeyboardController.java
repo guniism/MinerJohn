@@ -11,7 +11,7 @@ public class KeyboardController {
     private boolean moveLeft = false;
     private boolean moveRight = false;
     private boolean attacking = false;
-
+    private static boolean bag = false;
     public KeyboardController(){
         keyboardSetup();
         mouseSetup();
@@ -32,6 +32,9 @@ public class KeyboardController {
                 }
                 if (e.getCode() == KeyCode.D) {
                     moveRight = true;
+                }
+                if (e.getCode() == KeyCode.E) {
+                	bag = !bag;      	
                 }             
             }
         });
@@ -98,4 +101,7 @@ public class KeyboardController {
     public void setAttacking(boolean attacking) {
         this.attacking = attacking;
     }
+    public static void setBag(boolean bag) {
+		KeyboardController.bag = bag;
+	}
 }

@@ -1,7 +1,6 @@
 package ui;
 
 import game.GameController;
-import game.MainMenuButton;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -17,7 +16,6 @@ public class StartPage extends StackPane {
 
         MainMenuPane bg= new MainMenuPane();
         bg.setAlignment(Pos.CENTER);
-
         VBox buttonContainer = new VBox();
         buttonContainer.setAlignment(Pos.CENTER);
         this.setTranslateY(-23);

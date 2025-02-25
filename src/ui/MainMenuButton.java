@@ -1,5 +1,6 @@
-package game;
+package ui;
 
+import game.GameController;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -31,7 +32,7 @@ public class MainMenuButton extends Canvas {
         this.setOnMouseReleased(e -> setButtonState(1));
     }
 
-    private void setButtonState(int state) {
+    public void setButtonState(int state) {
         this.currentState = state;
         drawButton();
     }

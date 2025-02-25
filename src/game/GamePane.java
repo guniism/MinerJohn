@@ -17,11 +17,16 @@ public class GamePane extends Pane {
     private Player player;
     private double playerCenterAbsX;
     private double playerCenterAbsY;
+    private Pane mother;
+	private InventoryButton inv;
+	private Bag bag;
+	private CloseButtonPane closeButton;
+	private static boolean pass=true;
     private List<Rock> rocks = new ArrayList<>(); // Store all rocks
 
     private static final int ROCK_COUNT = 20; // Number of randomly placed rocks
 
-    public GamePane() {
+    public GamePane(Pane mother) {
         this.gameMap = new Map();
         this.player = new Player();
         this.getChildren().add(this.gameMap);
@@ -102,6 +107,35 @@ public class GamePane extends Pane {
         boolean movingUp = false;
         boolean movingRight = false;
         boolean movingLeft = false;
+        
+        if (GameController.getKeyboardController().isBag() && pass) {
+	        Thread thread = new Thread(() -> {
+	            Platform.runLater(() -> {
+	            	if(bag==null) {bag = new Bag();}
+	                inv = new InventoryButton();
+	                inv.setLayoutX(265);
+	                inv.setLayoutY(60);
+	                bag.setLayoutX(265);
+	                bag.setLayoutY(115);
+	                closeButton = new CloseButtonPane(mother, bag, inv);
+	                closeButton.setLayoutX(760);
+	                closeButton.setLayoutY(60);
+	                mother.getChildren().addAll(inv, bag, closeButton);
+	                MainPane.setFloorText("3");
+	                pass = false;
+	            });
+	        });
+	        thread.start();
+	    } else if (!GameController.getKeyboardController().isBag() && !pass) { 
+	        Platform.runLater(() -> {
+	            mother.getChildren().removeAll(inv, bag, closeButton);
+	            MainPane.setFloorText("1");
+	            bag = null;
+	            inv = null;
+	            closeButton = null;
+	            pass = true;
+	        });
+	    }
 
         if(player.canMove()) {    
             if (GameController.getKeyboardController().isMoveUp()) {

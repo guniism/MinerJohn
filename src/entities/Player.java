@@ -40,8 +40,12 @@ public class Player extends Canvas {
     // Animation speed control
     private int frameDelay = 10; // Movement animation speed
     private int frameCounter = 0;
-    private int miningFrameDelay = 15	; // Mining animation speed
+    private int miningFrameDelay = 15; // Mining animation speed
     private int miningFrameCounter = 0;
+    private static Item usingItem;
+
+	public static ArrayList<ArrayList<Item>> Inventory;
+	public static ContainerPane[][] containerGrid= new ContainerPane[5][5];
 
     public Player() {
         WIDTH = frameWidth * GameController.getScale();
@@ -65,10 +69,83 @@ public class Player extends Canvas {
 
         frameIndex = 0;
         movingDown = false;
+
+        Inventory = new ArrayList<>();
+
+		for (int i = 0; i < 5; i++) {
+			ArrayList<Item> row = new ArrayList<>();
+			for (int j = 0; j < 5; j++) {
+				row.add(null);
+			}
+			Inventory.add(row);
+		}
+		for(int i=0;i<5;i++) {
+			for(int j=0;j<5;j++) {
+				containerGrid[i][j]=null;
+			}
+		}
         
         setupAnimationTimer();
         draw(); // Draw initial frame
     }
+    public static boolean addItem(Item item, ContainerPane[][] containerGrid) {
+	    for (int row = 0; row < 5; row++) {
+	        for (int col = 0; col < 5; col++) {
+	            if (Inventory.get(row).get(col) == null) {
+	                Inventory.get(row).set(col, item);
+	                
+	                if (containerGrid != null&&row==0) {
+	                    containerGrid[row][col].loadItemFromInventory();
+	                    containerGrid[row][col].drawContainer();
+	                }
+	                return true;
+	            }
+	        }
+	    }
+	    return false;
+	}
+
+
+	public static boolean useItem(Item item, int amount, ContainerPane[][] containerGrid) {
+	    int count = 0;
+
+	    for (int row = 4; row >=0; row--) {
+	        for (int col =4; col >=0; col--) {
+	            if (Inventory.get(row).get(col) != null && Inventory.get(row).get(col).equals(item)) {
+	                count++;
+	            }
+	        }
+	    }
+
+	    if (count < amount) return false;
+
+	    for (int row = 4; row >=0; row--) {
+	        for (int col =4; col >=0; col--) {
+	            if (Inventory.get(row).get(col) != null && Inventory.get(row).get(col).equals(item) && amount > 0) {
+	                Inventory.get(row).set(col, null);
+	                amount--;
+
+	                if (containerGrid != null&&row==0) {
+	                    containerGrid[row][col].loadItemFromInventory();
+	                    containerGrid[row][col].drawContainer();
+	                }
+	            }
+	        }
+	    }
+	    return true;
+	}
+
+
+	public static ArrayList<ArrayList<Item>> getInventory() {
+		return Inventory;
+	}
+    public static Item getUsingItem() {
+		return usingItem;
+	}
+
+	public static void setUsingItem(Item usingItem) {
+		Player.usingItem = usingItem;
+	}
 
     private void setupAnimationTimer() {
         animationTimer = new AnimationTimer() {
