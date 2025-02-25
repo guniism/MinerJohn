@@ -2,6 +2,7 @@ package game;
 
 import entities.Player;
 import javafx.animation.AnimationTimer;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import world.Ladder;
 import world.Map;
@@ -18,7 +19,7 @@ public class GamePane extends Pane {
     private double playerCenterAbsY;
     private List<Rock> rocks = new ArrayList<>(); // Store all rocks
 
-    private static final int ROCK_COUNT = 10; // Number of randomly placed rocks
+    private static final int ROCK_COUNT = 20; // Number of randomly placed rocks
 
     public GamePane() {
         this.gameMap = new Map();
@@ -31,9 +32,25 @@ public class GamePane extends Pane {
 
         // Generate random rocks
         generateRandomRocks();
-        //Generate random ladder
+        // Generate random ladder
         generateRandomLadder();
+        
+        // Set up mouse click event handler
+        setupMouseHandler();
+        
         startMovement();
+    }
+
+    private void setupMouseHandler() {
+        // Add event handler for mouse clicks
+        this.setOnMouseClicked(this::handleMouseClick);
+    }
+    
+    private void handleMouseClick(MouseEvent event) {
+        // If player is not mining and can move, start mining on mouse click
+        if (!player.isMining() && player.canMove()) {
+            player.mine();
+        }
     }
 
     private void generateRandomRocks() {
@@ -72,6 +89,7 @@ public class GamePane extends Pane {
             @Override
             public void handle(long now) {
                 move();
+                checkMining();
             }
         };
         timer.start();
@@ -85,28 +103,30 @@ public class GamePane extends Pane {
         boolean movingRight = false;
         boolean movingLeft = false;
 
-        if (GameController.getKeyboardController().isMoveUp()) {
-            if (this.player.getY() >= 180 && !isColliding(0, -this.player.getSpeed())) {
-                dy -= this.player.getSpeed();
-                movingUp = true;
+        if(player.canMove()) {    
+            if (GameController.getKeyboardController().isMoveUp()) {
+                if (this.player.getY() >= 180 && !isColliding(0, -this.player.getSpeed())) {
+                    dy -= this.player.getSpeed();
+                    movingUp = true;
+                }
             }
-        }
-        if (GameController.getKeyboardController().isMoveDown()) {
-            if (this.player.getY() <= 900 && !isColliding(0, this.player.getSpeed())) {
-                dy += this.player.getSpeed();
-                movingDown = true; // Start walking down animation
+            if (GameController.getKeyboardController().isMoveDown()) {
+                if (this.player.getY() <= 900 && !isColliding(0, this.player.getSpeed())) {
+                    dy += this.player.getSpeed();
+                    movingDown = true; // Start walking down animation
+                }
             }
-        }
-        if (GameController.getKeyboardController().isMoveLeft()) {
-            if (this.player.getX() >= 3 * 16 * GameController.getScale() && !isColliding(-this.player.getSpeed(), 0)) {
-                dx -= this.player.getSpeed();
-                movingLeft = true;
+            if (GameController.getKeyboardController().isMoveLeft()) {
+                if (this.player.getX() >= 3 * 16 * GameController.getScale() && !isColliding(-this.player.getSpeed(), 0)) {
+                    dx -= this.player.getSpeed();
+                    movingLeft = true;
+                }
             }
-        }
-        if (GameController.getKeyboardController().isMoveRight()) {
-            if (this.player.getX() <= 2258 && !isColliding(this.player.getSpeed(), 0)) {
-                dx += this.player.getSpeed();
-                movingRight = true;
+            if (GameController.getKeyboardController().isMoveRight()) {
+                if (this.player.getX() <= 2258 && !isColliding(this.player.getSpeed(), 0)) {
+                    dx += this.player.getSpeed();
+                    movingRight = true;
+                }
             }
         }
 
@@ -137,33 +157,44 @@ public class GamePane extends Pane {
         this.player.setLayoutX(this.player.getX());
         this.player.setLayoutY(this.player.getY());
     }
+    
+    private void checkMining() {
+        if (GameController.getKeyboardController().isAttacking() && !player.isMining()) {
+            player.mine();
+            // Reset the attack flag after starting the mining
+            GameController.getKeyboardController().setAttacking(false);
+        }
+    }
 
-
-    // **Collision Detection for Random Rocks**
+    // Collision Detection for Random Rocks
     private boolean isColliding(double dx, double dy) {
-        double nextX = this.player.getX() + dx;
-        double nextY = this.player.getY() + dy;
+        double nextX = this.player.getX() + dx + 16 * GameController.getScale();
+        double nextY = this.player.getY() + dy + 16 * GameController.getScale();
         
-        double playerWidth = this.player.getWidth();
-        double playerHeight = this.player.getHeight();
+        double hitboxWidth = 16 * GameController.getScale();
+        double hitboxHeight = 16 * GameController.getScale();
+        
+//        double playerWidth = this.player.getWidth();
+//        double playerHeight = this.player.getHeight();
 
         for (Rock rock : rocks) {
             double rockX = rock.getLayoutX();
             double rockY = rock.getLayoutY();
             double rockSize = 16 * GameController.getScale(); // Adjust based on rock size
 
-            // **Smaller collision box for smoother movement**
+            // Smaller collision box for smoother movement
             double collisionPadding = 4 * GameController.getScale();
             double rockLeft = rockX + collisionPadding;
             double rockRight = rockX + rockSize - collisionPadding;
-            double rockTop = rockY + collisionPadding;
+            double rockTop = rockY - collisionPadding ;
             double rockBottom = rockY;
 
-            // **Check if player’s next position overlaps with rock**
-            if (nextX + playerWidth > rockLeft && nextX < rockRight &&
-                nextY + playerHeight > rockTop && nextY < rockBottom) {
+            // Check if player's next position overlaps with rock
+            if (nextX + hitboxWidth > rockLeft && nextX < rockRight &&
+                nextY + hitboxHeight > rockTop && nextY < rockBottom) {
                 return true; // Collision detected
             }
+           
         }
         return false; // No collision
     }
