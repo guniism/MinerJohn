@@ -104,4 +104,8 @@ public class KeyboardController {
     public static void setBag(boolean bag) {
 		KeyboardController.bag = bag;
 	}
+
+	public boolean isBag() {
+		return bag;
+	}
 }

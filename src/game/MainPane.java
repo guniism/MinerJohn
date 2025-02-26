@@ -9,9 +9,13 @@ import entities.Player;
 
 public class MainPane extends Pane {
     private static Text floorText;
+    private static int FloorNum;
+    private GamePane gamePane; // Store the GamePane here
+
     public MainPane() {
-        GamePane gp = new GamePane(this);
-        this.getChildren().add(gp);
+        // Create and store the GamePane
+        gamePane = new GamePane(this);
+        this.getChildren().add(gamePane);
 
         List<ContainerPane> allButtons = new ArrayList<>();
         Inventory inventory = new Inventory(false, 0, allButtons);
@@ -29,7 +33,7 @@ public class MainPane extends Pane {
         
         this.getChildren().addAll(hBar, sBar);
         
-        BagIcon bagIcon=new BagIcon();
+        BagIcon bagIcon = new BagIcon();
         Floor floor = new Floor();
         Icon icon = new Icon();
         
@@ -37,7 +41,7 @@ public class MainPane extends Pane {
         bagIcon.setLayoutY(635);
         floor.setLayoutX(985);
         floor.setLayoutY(20);
-        
+        FloorNum = 1;
         floorText = new Text("1");
         floorText.setLayoutX(floor.getLayoutX() + 33);
         floorText.setLayoutY(floor.getLayoutY() + 35);
@@ -46,7 +50,7 @@ public class MainPane extends Pane {
         icon.setLayoutX(15);
         icon.setLayoutY(20);
         
-        this.getChildren().addAll(bagIcon,floor,icon,floorText);
+        this.getChildren().addAll(bagIcon, floor, icon, floorText);
         
         Bar barH = new Bar();
         barH.setLayoutX(100);
@@ -59,11 +63,22 @@ public class MainPane extends Pane {
         
         Player.addItem(new Item(0, 0), Player.containerGrid);
         Player.addItem(ItemRegistry.getItemById("Silver_Pickaxe"), Player.containerGrid);
-
+    }
+    
+    // Getter method to retrieve the stored GamePane
+    public GamePane getGamePane() {
+        return gamePane;
     }
     
     public static void setFloorText(String newText) {
-    	floorText.setText(newText);
+        floorText.setText(newText);
     }
 
+	public static int getFloorNum() {
+		return FloorNum;
+	}
+
+	public static void setFloorNum(int floorNum) {
+		FloorNum = floorNum;
+	}
 }

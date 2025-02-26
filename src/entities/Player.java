@@ -1,10 +1,14 @@
 package entities;
 
+import java.util.ArrayList;
+
 import game.GameController;
+import game.Item;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import ui.ContainerPane;
 
 public class Player extends Canvas {
     private final int WIDTH;
@@ -267,7 +271,7 @@ public class Player extends Canvas {
                 row = 0;
                 break;
         }
-        
+        setCanMove(false);
         double srcX = miningFrameIndex * miningFrameWidth;
         double srcY = row * miningFrameHeight;
         
@@ -356,4 +360,7 @@ public class Player extends Canvas {
     public boolean isMining() {
         return isMining;
     }
+	public void setMining(boolean isMining) {
+		this.isMining = isMining;
+	}
 }
