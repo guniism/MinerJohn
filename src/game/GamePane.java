@@ -38,7 +38,7 @@ public class GamePane extends Pane {
 	private CloseButtonPane closeButton;
 	private static boolean pass = true;
 	private int[][] mapBlock;
-	private Block[][] blockArray;
+//	private Block[][] blockArray;
 	private List<Block> blocks = new ArrayList<>(); // Store all rocks
 	private Rectangle transitionScreen;
 //	private static final int ROCK_COUNT = 10; // Number of randomly placed rocks
@@ -84,9 +84,8 @@ public class GamePane extends Pane {
 		int arraySizeH = (int) (this.gameMap.getHeight() / GameController.getScale()) / 16;
 		int arraySizeW = (int) (this.gameMap.getWidth() / GameController.getScale()) / 16;
 		this.mapBlock = new int[arraySizeH][arraySizeW];
-		this.blockArray = new Block[arraySizeH][arraySizeW];
-//		System.out.println(blockArray[0].length);
-//		System.out.println(blockArray.length);
+//		this.blockArray = new Block[arraySizeH][arraySizeW];
+
 		Random rand = new Random();
 
 		// Random player start position
@@ -102,7 +101,7 @@ public class GamePane extends Pane {
 		for (int i = 0; i < mapBlock.length; i++) {
 			for (int j = 0; j < mapBlock[0].length; j++) {
 				if (i > 3 && i < mapBlock.length - 3 && j < mapBlock[0].length - 3 && j > 2) {
-					this.blockArray[i][j] = null;
+//					this.blockArray[i][j] = null;
 					if (i == playerSpawnY && j == playerSpawnX) {
 						continue;
 					}
@@ -131,7 +130,7 @@ public class GamePane extends Pane {
 					block.setLayoutX(16 * GameController.getScale() * j);
 					block.setLayoutY(16 * GameController.getScale() * i);
 					this.getChildren().add(block);
-					this.blockArray[i][j] = block;
+//					this.blockArray[i][j] = block;
 					blocks.add(block);
 				} else {
 					this.mapBlock[i][j] = -1;
@@ -147,23 +146,18 @@ public class GamePane extends Pane {
 			for (int j = 0; j < mapBlock[0].length; j++) {
 				tmp += this.mapBlock[i][j] + " ";
 				if (this.mapBlock[i][j] == 1) {
-//		        	Ore block = new Ore(5, "block.png");
-//		        	block.setLayoutX(16 * GameController.getScale() * j);
-//		        	block.setLayoutY(16 * GameController.getScale() * i);
-//		        	this.getChildren().add(block);
-//		        	blocks.add(block);
 				}
 			}
 			System.out.println(tmp);
 		}
 
-		for (int i = 0; i < blockArray.length; i++) {
-			String tmp = "";
-			for (int j = 0; j < blockArray[0].length; j++) {
-				tmp += this.blockArray[i][j] + " ";
-			}
-			System.out.println(tmp);
-		}
+//		for (int i = 0; i < blockArray.length; i++) {
+//			String tmp = "";
+//			for (int j = 0; j < blockArray[0].length; j++) {
+//				tmp += this.blockArray[i][j] + " ";
+//			}
+//			System.out.println(tmp);
+//		}
 	}
 
 	private void setupMouseHandler() {
