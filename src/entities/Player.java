@@ -204,12 +204,10 @@ public class Player extends Canvas {
                     if (miningFrameCounter >= miningFrameDelay) {
                         miningFrameCounter = 0;
                         miningFrameIndex = (miningFrameIndex + 1) % miningTotalFrames;
-                        System.out.println(miningFrameIndex);
                         // If we've completed the animation cycle, stop mining
                         if (miningFrameIndex == 0) {
                             isMining = false;
                             setCanMove(true);
-//                          System.out.println("Animation Done");
                             usePickaxe();
                         }
                     }
@@ -467,12 +465,8 @@ public class Player extends Canvas {
         }
     }
     public void usePickaxe() {
-    	System.out.println(getLastDirection());
 		double playerFootX = getX() + (8 + 24 - 8) * GameController.getScale();
 		double playerFootY = getY() + (32) * GameController.getScale();
-		System.out.println((int) playerFootX / GameController.getScale() / 16 + " "
-				+ (int) playerFootY / GameController.getScale() / 16);
-
 
 		double targetMineBlockX = 0;
 		double targetMineBlockY = 0;
@@ -511,17 +505,15 @@ public class Player extends Canvas {
 
 					if (block instanceof Pickaxeable) {
 						Ore ore = (Ore) block;
-//						ore.setLayoutY(ore.getLayoutY() - 1);
 						new Thread(() -> {
 					        try {
-					            // Move ore up
 					        	 Platform.runLater(() -> {
-					                    ore.setLayoutY(ore.getLayoutY() - 2);  // Move up by 1 pixel
+					                    ore.setLayoutY(ore.getLayoutY() - 2);
 					                });
 					                Thread.sleep(50);
 
 					                Platform.runLater(() -> {
-					                    ore.setLayoutY(ore.getLayoutY() + 2);  // Move down by 1 pixel
+					                    ore.setLayoutY(ore.getLayoutY() + 2);
 					                });
 					                Thread.sleep(50);
 
@@ -529,7 +521,6 @@ public class Player extends Canvas {
 					            e.printStackTrace();
 					        }
 					    }).start();
-//						ore.setLayoutY(ore.getLayoutY() + 1);
 						if (ore.isBrokeFromBreak(damage)) {
 							GameController.getGamePane().getChildren().remove(block);
 							iterator.remove();

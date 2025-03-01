@@ -1,5 +1,6 @@
 package game;
 
+
 import entities.Slime;
 import entities.Zombie;
 import entities.Player;
@@ -185,59 +186,6 @@ public class GamePane extends Pane {
 			System.out.println("player is Mining");
 			player.setMining(true);
 			player.mine();
-			
-//			System.out.println(player.getLastDirection());
-//			double playerFootX = player.getX() + (8 + 24 - 8) * GameController.getScale();
-//			double playerFootY = player.getY() + (32) * GameController.getScale();
-//			System.out.println((int) playerFootX / GameController.getScale() / 16 + " "
-//					+ (int) playerFootY / GameController.getScale() / 16);
-//
-//
-//			double targetMineBlockX = 0;
-//			double targetMineBlockY = 0;
-//			switch (player.getLastDirection()) {
-//			case "up":
-//				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16);
-//				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16) - 1;
-//				break;
-//			case "right":
-//				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16) + 1;
-//				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16);
-//				break;
-//			case "left":
-//				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16) - 1;
-//				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16);
-//				break;
-//			case "down":
-//				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16);
-//				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16) + 1;
-//			default:
-//
-//				break;
-//			}
-//			if (targetMineBlockX != 0 && targetMineBlockY != 0) {
-//				Iterator<Block> iterator = blocks.iterator();
-//				while (iterator.hasNext()) {
-//					Block block = iterator.next();
-//
-//					int blockCenX = (int) ((block.getLayoutX() + (8 * GameController.getScale()))
-//							/ GameController.getScale() / 16);
-//					int blockCenY = (int) ((block.getLayoutY() + (8 * GameController.getScale()))
-//							/ GameController.getScale() / 16);
-//
-//					if (blockCenX == (int) targetMineBlockX && blockCenY == (int) targetMineBlockY) {
-//						int damage = 1;
-//
-//						if (block instanceof Pickaxeable) {
-//							Ore ore = (Ore) block;
-//							if (ore.isBrokeFromBreak(damage)) {
-//								this.getChildren().remove(block);
-//								iterator.remove();
-//							}
-//						}
-//					}
-//				}
-//			}
 		}
 
 		else if (Player.getUsingItem().getRow() == 3 && Player.getUsingItem().getCol() == 4) {
@@ -473,9 +421,6 @@ public class GamePane extends Pane {
 		}
 
 		if (player.canMove()) {
-//			double playerFootX = player.getX() + (8 + 24 - 8) * GameController.getScale();
-//			double playerFootY = player.getY() + (32) * GameController.getScale();
-//			System.out.println((int)(playerFootX / GameController.getScale())/16 + " " + ((int)playerFootY / GameController.getScale())/16);
 			if (GameController.getKeyboardController().isMoveUp()) {
 				if (this.player.getY() >= 2 * 16 * GameController.getScale()
 						&& !isColliding(0, -this.player.getSpeed())) {
@@ -487,7 +432,7 @@ public class GamePane extends Pane {
 				if (this.player.getY() <= this.gameMap.getHeight() - (5 * 16 + 8) * GameController.getScale()
 						&& !isColliding(0, this.player.getSpeed())) {
 					dy += this.player.getSpeed();
-					movingDown = true; // Start walking down animation
+					movingDown = true;
 				}
 			}
 			if (GameController.getKeyboardController().isMoveLeft()) {
@@ -504,30 +449,6 @@ public class GamePane extends Pane {
 					movingRight = true;
 				}
 			}
-//			if (GameController.getKeyboardController().isMoveUp()) {
-//				if (!isColliding(0, -this.player.getSpeed())) {
-//					dy -= this.player.getSpeed();
-//					movingUp = true;
-//				}
-//			}
-//			if (GameController.getKeyboardController().isMoveDown()) {
-//				if (!isColliding(0, this.player.getSpeed())) {
-//					dy += this.player.getSpeed();
-//					movingDown = true; // Start walking down animation
-//				}
-//			}
-//			if (GameController.getKeyboardController().isMoveLeft()) {
-//				if (!isColliding(-this.player.getSpeed(), 0)) {
-//					dx -= this.player.getSpeed();
-//					movingLeft = true;
-//				}
-//			}
-//			if (GameController.getKeyboardController().isMoveRight()) {
-//				if (!isColliding(this.player.getSpeed(), 0)) {
-//					dx += this.player.getSpeed();
-//					movingRight = true;
-//				}
-//			}
 		}
 
 		player.setMovingDown(movingDown);
