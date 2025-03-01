@@ -4,8 +4,11 @@ import game.GameController;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class StartPage extends StackPane {
@@ -37,6 +40,8 @@ public class StartPage extends StackPane {
         buttonContainer.getChildren().addAll(newGameButton, tutorialButton, exitButton);
         buttonContainer.setTranslateY(140);
         this.getChildren().addAll(bg,buttonContainer);
+        
+        this.setBackground(new Background(new BackgroundFill(Color.web("#331B17"), null, null)));
     }
 
     public static void showStartPage(Stage primaryStage) {

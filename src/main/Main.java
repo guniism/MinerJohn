@@ -1,11 +1,15 @@
 package main;
 
+import game.MainPane;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
+import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import ui.StartPage;
+import world.Map;
 
 public class Main extends Application {
 

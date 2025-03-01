@@ -23,8 +23,10 @@ import world.Block;
 import world.Ladder;
 import world.Map;
 import world.Ore;
+import world.Pickaxeable;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -38,6 +40,8 @@ public class GamePane extends Pane {
 	private Bag bag;
 	private CloseButtonPane closeButton;
 	private static boolean pass = true;
+	private int[][] mapBlock;
+	private Block[][] blockArray;
 	private List<Block> blocks = new ArrayList<>(); // Store all rocks
 	private Rectangle transitionScreen;
 	private static final int ROCK_COUNT = 10; // Number of randomly placed rocks
@@ -50,28 +54,118 @@ public class GamePane extends Pane {
 		this.gameMap = new Map();
 		this.player = new Player();
 		this.slimes = new ArrayList<>();
+
 		this.blocks = new ArrayList<>();
 		this.zombies = new ArrayList<>();
 		this.getChildren().add(this.gameMap);
-		this.getChildren().add(this.player);
-		this.playerCenterAbsX = this.player.getX() + this.getLayoutX();
-		this.playerCenterAbsY = this.player.getY() + this.getLayoutY();
+
+		this.playerCenterAbsX = this.player.getX() + this.getLayoutX() - 16 * GameController.getScale();
+		this.playerCenterAbsY = this.player.getY() + this.getLayoutY() - 8 * GameController.getScale();
 		transitionScreen = new Rectangle();
 		transitionScreen.setFill(Color.BLACK);
 		transitionScreen.setOpacity(0);
 		transitionScreen.setViewOrder(-1000);
 		this.getChildren().add(transitionScreen);
 
-		// Generate random rocks
-		generateRandomBlocks();
-		// Generate random ladder
-		generateRandomLadder();
-		generateRandomSlimes();
-		generateRandomZombies();
-		// Set up mouse click event handler
-		setupMouseHandler();
+		genererateNextMap();
 
+		// Generate random rocks
+//		generateRandomBlocks();
+		// Generate random ladder
+//		generateRandomLadder();
+		this.getChildren().add(this.player);
+//		generateRandomSlimes();
+//		generateRandomZombies();
+		// Set up mouse click event handler
+
+		setupMouseHandler();
 		startMovement();
+	}
+
+	private void genererateNextMap() {
+		int arraySizeH = (int) (this.gameMap.getHeight() / GameController.getScale()) / 16;
+		int arraySizeW = (int) (this.gameMap.getWidth() / GameController.getScale()) / 16;
+		this.mapBlock = new int[arraySizeH][arraySizeW];
+		this.blockArray = new Block[arraySizeH][arraySizeW];
+//		System.out.println(blockArray[0].length);
+//		System.out.println(blockArray.length);
+		Random rand = new Random();
+
+		// Random player start position
+		int playerSpawnX = rand.nextInt((mapBlock[0].length - 3 - 1) - 3 + 1) + 3;
+		int playerSpawnY = 4;
+
+		this.player.setX((playerSpawnX - 1) * 16 * GameController.getScale());
+		this.player.setY(2 * 16 * GameController.getScale());
+		this.player.setLayoutX(this.player.getX());
+		this.player.setLayoutY(this.player.getY());
+		this.mapBlock[playerSpawnY][playerSpawnX] = -2;
+
+		for (int i = 0; i < mapBlock.length; i++) {
+			for (int j = 0; j < mapBlock[0].length; j++) {
+				if (i > 3 && i < mapBlock.length - 3 && j < mapBlock[0].length - 3 && j > 2) {
+					this.blockArray[i][j] = null;
+					if (i == playerSpawnY && j == playerSpawnX) {
+						continue;
+					}
+					int randomValue = rand.nextInt(100);
+
+					int p1 = 90;
+					int p2 = 4;
+					int p3 = 3;
+					int p4 = 2;
+					int p5 = 1;
+
+					if (randomValue < p1) {
+						this.mapBlock[i][j] = 0;
+						continue;
+					} else if (randomValue < p1 + p2) {
+						this.mapBlock[i][j] = 1;
+					} else if (randomValue < p1 + p2 + p3) {
+						this.mapBlock[i][j] = 1;
+					} else if (randomValue < p1 + p2 + p3 + p4) {
+						this.mapBlock[i][j] = 2;
+
+					} else {
+						this.mapBlock[i][j] = 3;
+					}
+					Ore block = new Ore(this.mapBlock[i][j]);
+					block.setLayoutX(16 * GameController.getScale() * j);
+					block.setLayoutY(16 * GameController.getScale() * i);
+					this.getChildren().add(block);
+					this.blockArray[i][j] = block;
+					blocks.add(block);
+				} else {
+					this.mapBlock[i][j] = -1;
+				}
+			}
+		}
+		for (int i = 0; i < this.getChildren().size(); i++) {
+			System.out.println("Child " + i + ": " + this.getChildren().get(i));
+		}
+
+		for (int i = 0; i < mapBlock.length; i++) {
+			String tmp = "";
+			for (int j = 0; j < mapBlock[0].length; j++) {
+				tmp += this.mapBlock[i][j] + " ";
+				if (this.mapBlock[i][j] == 1) {
+//		        	Ore block = new Ore(5, "block.png");
+//		        	block.setLayoutX(16 * GameController.getScale() * j);
+//		        	block.setLayoutY(16 * GameController.getScale() * i);
+//		        	this.getChildren().add(block);
+//		        	blocks.add(block);
+				}
+			}
+			System.out.println(tmp);
+		}
+
+		for (int i = 0; i < blockArray.length; i++) {
+			String tmp = "";
+			for (int j = 0; j < blockArray[0].length; j++) {
+				tmp += this.blockArray[i][j] + " ";
+			}
+			System.out.println(tmp);
+		}
 	}
 
 	private void setupMouseHandler() {
@@ -90,76 +184,138 @@ public class GamePane extends Pane {
 		}
 
 		// Only execute mining if ladder wasn’t clicked
-		if (Player.getUsingItem().getRow() == 2 && Player.getUsingItem().getCol() == 2) {
+		if (Player.getUsingItem().getRow() == 2 && Player.getUsingItem().getCol() == 0 && !player.isMining()) {
 			System.out.println("player is Mining");
+			System.out.println(player.getLastDirection());
+			double playerFootX = player.getX() + (8 + 24 - 8) * GameController.getScale();
+			double playerFootY = player.getY() + (32) * GameController.getScale();
+			System.out.println((int) playerFootX / GameController.getScale() / 16 + " "
+					+ (int) playerFootY / GameController.getScale() / 16);
+
 			player.setMining(true);
-			player.mine();
+			player.mine();       
+
+			double targetMineBlockX = 0;
+			double targetMineBlockY = 0;
+			switch (player.getLastDirection()) {
+			case "up":
+				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16);
+				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16) - 1;
+				break;
+			case "right":
+				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16) + 1;
+				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16);
+				break;
+			case "left":
+				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16) - 1;
+				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16);
+				break;
+			case "down":
+				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16);
+				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16) + 1;
+			default:
+
+				break;
+			}
+			if (targetMineBlockX != 0 && targetMineBlockY != 0) {
+				System.out.println("-----------");
+				System.out.println((int) targetMineBlockX + " " + (int) targetMineBlockY);
+				System.out.println("-----------");
+
+				// Use an iterator to safely remove elements from the blocks list
+				Iterator<Block> iterator = blocks.iterator();
+				while (iterator.hasNext()) {
+					Block block = iterator.next();
+
+					int blockCenX = (int) ((block.getLayoutX() + (8 * GameController.getScale()))
+							/ GameController.getScale() / 16);
+					int blockCenY = (int) ((block.getLayoutY() + (8 * GameController.getScale()))
+							/ GameController.getScale() / 16);
+
+					// Check if the block's coordinates match the target coordinates
+					if (blockCenX == (int) targetMineBlockX && blockCenY == (int) targetMineBlockY) {
+						int damage = 1;
+						
+				        if (block instanceof Pickaxeable) {
+//				            System.out.println("Pickaxeable.");
+				            Ore ore = (Ore) block;
+				            if(ore.isBrokeFromBreak(damage)) {
+				            	this.getChildren().remove(block);
+								iterator.remove();
+				            }
+				           
+				        }
+					}
+				}
+
+			} 
+
 		}
 
-		else if (Player.getUsingItem().getRow() == 3 && Player.getUsingItem().getCol() == 1) {
+		else if (Player.getUsingItem().getRow() == 3 && Player.getUsingItem().getCol() == 4) {
 			System.out.println("player is Attacking");
 			player.setAttacking(true);
 			player.attack();
 		}
 	}
 
-	private boolean isValidBlockLocation(double gridX, double gridY) {
-		// Use grid coordinates so that blocks never share the same cell.
-		// Check if any block is already at that grid coordinate.
-		double tileSize = 16 * GameController.getScale();
-		double candidateX = gridX * tileSize;
-		double candidateY = gridY * tileSize;
-		for (Block block : blocks) {
-			// Compare positions (using a tolerance of 0 since blocks are placed on a grid)
-			if (Math.abs(block.getLayoutX() - candidateX) < 0.1 && Math.abs(block.getLayoutY() - candidateY) < 0.1) {
-				return false;
-			}
-		}
-		return true;
-	}
+//	private boolean isValidBlockLocation(double gridX, double gridY) {
+//		// Use grid coordinates so that blocks never share the same cell.
+//		// Check if any block is already at that grid coordinate.
+//		double tileSize = 16 * GameController.getScale();
+//		double candidateX = gridX * tileSize;
+//		double candidateY = gridY * tileSize;
+//		for (Block block : blocks) {
+//			// Compare positions (using a tolerance of 0 since blocks are placed on a grid)
+//			if (Math.abs(block.getLayoutX() - candidateX) < 0.1 && Math.abs(block.getLayoutY() - candidateY) < 0.1) {
+//				return false;
+//			}
+//		}
+//		return true;
+//	}
 
-	private void generateRandomBlocks() {
-		Random random = new Random();
-		int ORE_TYPE_COUNT = 5; // Number of ore types
-		double scale = GameController.getScale();
-		double tileSize = 16 * scale;
-
-		// Calculate player's spawn grid coordinates (assuming player's spawn is where
-		// the player is initially)
-		int playerSpawnGridX = (int) (player.getX() / tileSize);
-		int playerSpawnGridY = (int) (player.getY() / tileSize);
-
-		for (int i = 0; i < ROCK_COUNT; i++) {
-			int gridX, gridY;
-			int attempts = 0;
-			do {
-				gridX = random.nextInt(5, 25);
-				gridY = random.nextInt(5, 10);
-				attempts++;
-				// Continue if:
-				// 1. The grid is exactly the player's spawn cell.
-				// 2. There is already a block at that grid.
-			} while (((gridX == playerSpawnGridX && gridY == playerSpawnGridY) || !isValidBlockLocation(gridX, gridY))
-					&& attempts < 100);
-			// If after many attempts no valid cell is found, we simply skip.
-			if (attempts >= 100)
-				continue;
-
-			Block block;
-			if (random.nextBoolean()) {
-				block = new Ore(0, "block.png");
-			} else {
-				int oreType = random.nextInt(ORE_TYPE_COUNT);
-				block = new Ore(oreType + 1, "block.png");
-			}
-			double blockX = tileSize * gridX;
-			double blockY = tileSize * gridY;
-			block.setLayoutX(blockX);
-			block.setLayoutY(blockY);
-			this.getChildren().add(block);
-			blocks.add(block);
-		}
-	}
+//	private void generateRandomBlocks() {
+//		Random random = new Random();
+//		int ORE_TYPE_COUNT = 5; // Number of ore types
+//		double scale = GameController.getScale();
+//		double tileSize = 16 * scale;
+//
+//		// Calculate player's spawn grid coordinates (assuming player's spawn is where
+//		// the player is initially)
+//		int playerSpawnGridX = (int) (player.getX() / tileSize);
+//		int playerSpawnGridY = (int) (player.getY() / tileSize);
+//
+//		for (int i = 0; i < ROCK_COUNT; i++) {
+//			int gridX, gridY;
+//			int attempts = 0;
+//			do {
+//				gridX = random.nextInt(5, 25);
+//				gridY = random.nextInt(5, 10);
+//				attempts++;
+//				// Continue if:
+//				// 1. The grid is exactly the player's spawn cell.
+//				// 2. There is already a block at that grid.
+//			} while (((gridX == playerSpawnGridX && gridY == playerSpawnGridY) || !isValidBlockLocation(gridX, gridY))
+//					&& attempts < 100);
+//			// If after many attempts no valid cell is found, we simply skip.
+//			if (attempts >= 100)
+//				continue;
+//
+//			Block block;
+//			if (random.nextBoolean()) {
+//				block = new Ore(0);
+//			} else {
+//				int oreType = random.nextInt(ORE_TYPE_COUNT);
+//				block = new Ore(oreType + 1);
+//			}
+//			double blockX = tileSize * gridX;
+//			double blockY = tileSize * gridY;
+//			block.setLayoutX(blockX);
+//			block.setLayoutY(blockY);
+//			this.getChildren().add(block);
+//			blocks.add(block);
+//		}
+//	}
 
 	private boolean isValidSpawnLocation(double x, double y) {
 		double scale = GameController.getScale();
@@ -329,31 +485,61 @@ public class GamePane extends Pane {
 		}
 
 		if (player.canMove()) {
+//			double playerFootX = player.getX() + (8 + 24 - 8) * GameController.getScale();
+//			double playerFootY = player.getY() + (32) * GameController.getScale();
+//			System.out.println((int)(playerFootX / GameController.getScale())/16 + " " + ((int)playerFootY / GameController.getScale())/16);
 			if (GameController.getKeyboardController().isMoveUp()) {
-				if (this.player.getY() >= 140 && !isColliding(0, -this.player.getSpeed())) {
+				if (this.player.getY() >= 2 * 16 * GameController.getScale()
+						&& !isColliding(0, -this.player.getSpeed())) {
 					dy -= this.player.getSpeed();
 					movingUp = true;
 				}
 			}
 			if (GameController.getKeyboardController().isMoveDown()) {
-				if (this.player.getY() <= 860 && !isColliding(0, this.player.getSpeed())) {
+				if (this.player.getY() <= this.gameMap.getHeight() - (5 * 16 + 8) * GameController.getScale()
+						&& !isColliding(0, this.player.getSpeed())) {
 					dy += this.player.getSpeed();
 					movingDown = true; // Start walking down animation
 				}
 			}
 			if (GameController.getKeyboardController().isMoveLeft()) {
-				if (this.player.getX() >= 1.8 * 16 * GameController.getScale()
+				if (this.player.getX() >= 2 * 16 * GameController.getScale()
 						&& !isColliding(-this.player.getSpeed(), 0)) {
 					dx -= this.player.getSpeed();
 					movingLeft = true;
 				}
 			}
 			if (GameController.getKeyboardController().isMoveRight()) {
-				if (this.player.getX() <= 2178 && !isColliding(this.player.getSpeed(), 0)) {
+				if (this.player.getX() <= this.gameMap.getWidth() - 5 * 16 * GameController.getScale()
+						&& !isColliding(this.player.getSpeed(), 0)) {
 					dx += this.player.getSpeed();
 					movingRight = true;
 				}
 			}
+//			if (GameController.getKeyboardController().isMoveUp()) {
+//				if (!isColliding(0, -this.player.getSpeed())) {
+//					dy -= this.player.getSpeed();
+//					movingUp = true;
+//				}
+//			}
+//			if (GameController.getKeyboardController().isMoveDown()) {
+//				if (!isColliding(0, this.player.getSpeed())) {
+//					dy += this.player.getSpeed();
+//					movingDown = true; // Start walking down animation
+//				}
+//			}
+//			if (GameController.getKeyboardController().isMoveLeft()) {
+//				if (!isColliding(-this.player.getSpeed(), 0)) {
+//					dx -= this.player.getSpeed();
+//					movingLeft = true;
+//				}
+//			}
+//			if (GameController.getKeyboardController().isMoveRight()) {
+//				if (!isColliding(this.player.getSpeed(), 0)) {
+//					dx += this.player.getSpeed();
+//					movingRight = true;
+//				}
+//			}
 		}
 
 		player.setMovingDown(movingDown);
@@ -371,8 +557,10 @@ public class GamePane extends Pane {
 		// Update camera position
 		double newLayoutX = playerCenterAbsX - this.player.getX();
 		double newLayoutY = playerCenterAbsY - this.player.getY();
-		newLayoutX = Math.max(-1440, Math.min(0, newLayoutX));
-		newLayoutY = Math.max(-540, Math.min(0, newLayoutY));
+		newLayoutX = Math.max(-(this.gameMap.getWidth() - (14 * 16 * GameController.getScale())),
+				Math.min(0, newLayoutX));
+		newLayoutY = Math.max(-(this.gameMap.getHeight() - ((10 * 16 - 8) * GameController.getScale())),
+				Math.min(0, newLayoutY));
 		// System.out.println(newLayoutX);
 		this.setLayoutX(newLayoutX);
 		this.setLayoutY(newLayoutY);
@@ -396,7 +584,6 @@ public class GamePane extends Pane {
 			}
 		}
 
-		// Do the same for slimes if desired:
 		for (Slime slime : slimes) {
 			if (player.getY() >= slime.getY()) {
 				player.setViewOrder(-501);
@@ -503,7 +690,7 @@ public class GamePane extends Pane {
 					Platform.runLater(() -> {
 						getChildren().removeAll(blocks);
 						blocks.clear();
-						generateRandomBlocks();
+//						generateRandomBlocks();
 						generateRandomLadder();
 						double startX = 1080 / 2 - player.getWidth() / 2 - 16 * GameController.getScale();
 						double startY = 720 / 2 - player.getHeight() / 2 - player.getHeight() / 4
@@ -531,116 +718,113 @@ public class GamePane extends Pane {
 	}
 
 	private void updateOverlaySize() {
-	    transitionScreen.setWidth(this.getWidth());
-	    transitionScreen.setHeight(this.getHeight());
-	    transitionScreen.toFront(); // Ensure it's on top
+		transitionScreen.setWidth(this.getWidth());
+		transitionScreen.setHeight(this.getHeight());
+		transitionScreen.toFront(); // Ensure it's on top
 	}
-
 
 	public void reducePlayerHealth(int damage) {
-	    // Prevent taking damage if already dead
-	    if (player.isDead()) return;
+		// Prevent taking damage if already dead
+		if (player.isDead())
+			return;
 
-	    MainPane mainPane = (MainPane) mother;
-	    if (mainPane != null) {
-	        HealthStamBar healthBar = mainPane.gethBar();
-	        int currentHealth = healthBar.getBarAmount();
+		MainPane mainPane = (MainPane) mother;
+		if (mainPane != null) {
+			HealthStamBar healthBar = mainPane.gethBar();
+			int currentHealth = healthBar.getBarAmount();
 
-	        int newHealth = Math.max(0, currentHealth - damage);
-	        healthBar.setBarAmount(newHealth);
+			int newHealth = Math.max(0, currentHealth - damage);
+			healthBar.setBarAmount(newHealth);
 
-	        if (newHealth == 0 && !player.isDead()) {
-	            System.out.println("Player is dead!");
-	            player.die(() -> resetGame()); // Only called once
-	        }
-	    }
+			if (newHealth == 0 && !player.isDead()) {
+				System.out.println("Player is dead!");
+				player.die(() -> resetGame()); // Only called once
+			}
+		}
 	}
 
-
-	
 	private void resetGame() {
-	    System.out.println("Resetting game...");
-	    MainPane mainPane = (MainPane) mother;
+		System.out.println("Resetting game...");
+		MainPane mainPane = (MainPane) mother;
 
-	    // ✅ Ensure transitionScreen covers the entire game area
-	    updateOverlaySize();
-	    transitionScreen.toFront(); // Ensure fade effect is on top
+		// ✅ Ensure transitionScreen covers the entire game area
+		updateOverlaySize();
+		transitionScreen.toFront(); // Ensure fade effect is on top
 
-	    // Fade out to black
-	    FadeTransition fadeOut = new FadeTransition(Duration.seconds(1.5), transitionScreen);
-	    fadeOut.setFromValue(0);
-	    fadeOut.setToValue(1);
+		// Fade out to black
+		FadeTransition fadeOut = new FadeTransition(Duration.seconds(1.5), transitionScreen);
+		fadeOut.setFromValue(0);
+		fadeOut.setToValue(1);
 
-	    // Pause before resetting
-	    PauseTransition pause = new PauseTransition(Duration.seconds(1));
+		// Pause before resetting
+		PauseTransition pause = new PauseTransition(Duration.seconds(1));
 
-	    // Reset logic
-	    Transition resetLogic = new Transition() {
-	        {
-	            setCycleDuration(Duration.seconds(0.1));
-	        }
+		// Reset logic
+		Transition resetLogic = new Transition() {
+			{
+				setCycleDuration(Duration.seconds(0.1));
+			}
 
-	        @Override
-	        protected void interpolate(double frac) {
-	            if (frac == 1.0) {
-	                Platform.runLater(() -> {
-	                    // Remove all game objects
-	                    getChildren().removeAll(blocks);
-	                    getChildren().removeAll(slimes);
-	                    getChildren().removeAll(zombies);
+			@Override
+			protected void interpolate(double frac) {
+				if (frac == 1.0) {
+					Platform.runLater(() -> {
+						// Remove all game objects
+						getChildren().removeAll(blocks);
+						getChildren().removeAll(slimes);
+						getChildren().removeAll(zombies);
 
-	                    blocks.clear();
-	                    slimes.clear();
-	                    zombies.clear();
+						blocks.clear();
+						slimes.clear();
+						zombies.clear();
 
-	                    // Regenerate world
-	                    generateRandomBlocks();
-	                    generateRandomLadder();
-	                    generateRandomSlimes();
-	                    generateRandomZombies();
+						// Regenerate world
+//						generateRandomBlocks();
+						generateRandomLadder();
+						generateRandomSlimes();
+						generateRandomZombies();
 
-	                    // Reset player stats
-	                    player.setX(1080 / 2 - player.getWidth() / 2 - 16 * GameController.getScale());
-	                    player.setY(720 / 2 - player.getHeight() / 2 - player.getHeight() / 4 - 8 * GameController.getScale());
-	                    player.setLayoutX(player.getX());
-	                    player.setLayoutY(player.getY());
-	                    player.setAttacking(false);
-	                    player.setMining(false);
-	                    player.setCanMove(true);
+						// Reset player stats
+						player.setX(1080 / 2 - player.getWidth() / 2 - 16 * GameController.getScale());
+						player.setY(720 / 2 - player.getHeight() / 2 - player.getHeight() / 4
+								- 8 * GameController.getScale());
+						player.setLayoutX(player.getX());
+						player.setLayoutY(player.getY());
+						player.setAttacking(false);
+						player.setMining(false);
+						player.setCanMove(true);
 
-	                    // Reset player's health
-	                    MainPane mainPane = (MainPane) mother;
-	                    if (mainPane != null) {
-	                        mainPane.gethBar().setBarAmount(30); // Reset health to full
-	                    }
+						// Reset player's health
+						MainPane mainPane = (MainPane) mother;
+						if (mainPane != null) {
+							mainPane.gethBar().setBarAmount(30); // Reset health to full
+						}
 
-	                    // Ensure the player is added back
-	                    if (!getChildren().contains(player)) {
-	                        getChildren().add(player);
-	                    }
-	                });
-	            }
-	        }
-	    };
+						// Ensure the player is added back
+						if (!getChildren().contains(player)) {
+							getChildren().add(player);
+						}
+					});
+				}
+			}
+		};
 
-	    // Fade in after resetting
-	    FadeTransition fadeIn = new FadeTransition(Duration.seconds(1.5), transitionScreen);
-	    fadeIn.setFromValue(1);
-	    fadeIn.setToValue(0);
-	    fadeIn.setOnFinished(event -> {
-	        player.setCanMove(true);
-	        player.setDead(false);
-	        player.setDying(false);
-	    });
+		// Fade in after resetting
+		FadeTransition fadeIn = new FadeTransition(Duration.seconds(1.5), transitionScreen);
+		fadeIn.setFromValue(1);
+		fadeIn.setToValue(0);
+		fadeIn.setOnFinished(event -> {
+			player.setCanMove(true);
+			player.setDead(false);
+			player.setDying(false);
+		});
 
+		// Play reset sequence
+		SequentialTransition resetSequence = new SequentialTransition(fadeOut, pause, resetLogic, fadeIn);
+		resetSequence.play();
 
-	    // Play reset sequence
-	    SequentialTransition resetSequence = new SequentialTransition(fadeOut, pause, resetLogic, fadeIn);
-	    resetSequence.play();
-	    
 	}
 
-	
 	public static boolean isPass() {
 		return pass;
 	}

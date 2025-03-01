@@ -39,6 +39,7 @@ public class MainPane extends Pane {
         
         bagIcon.setLayoutX(995);
         bagIcon.setLayoutY(635);
+        
         floor.setLayoutX(985);
         floor.setLayoutY(20);
         FloorNum = 1;
@@ -61,9 +62,9 @@ public class MainPane extends Pane {
         barS.setLayoutY(65);
         this.getChildren().addAll(barH, barS);
         
-        Player.addItem(new Item(0, 0), Player.containerGrid);
-        Player.addItem(ItemRegistry.getItemById("Silver_Pickaxe"), Player.containerGrid);
-        Player.addItem(ItemRegistry.getItemById("Silver_Shovel"), Player.containerGrid);
+//        Player.addItem(new Item(0, 0), Player.containerGrid);
+        Player.addItem(ItemRegistry.getItemById("Pickaxe"), Player.containerGrid);
+        Player.addItem(ItemRegistry.getItemById("Sword"), Player.containerGrid);
     }
     
     // Getter method to retrieve the stored GamePane

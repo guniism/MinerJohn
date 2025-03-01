@@ -6,6 +6,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
 public abstract class Block extends Canvas {
+	private static final int SIZE = 16;
     protected Image spriteSheet;
     protected int tileCol,tileRow;
 
@@ -15,13 +16,18 @@ public abstract class Block extends Canvas {
 
         this.setWidth(16 * GameController.getScale());
         this.setHeight(16 * GameController.getScale());
-
+//
         GraphicsContext gc = this.getGraphicsContext2D();
         gc.setImageSmoothing(false);
         gc.scale(GameController.getScale(), GameController.getScale());
 
-        render(gc);
+//        render(gc);
     }
 
     protected abstract void render(GraphicsContext gc);
+    
+    
+	public int size() {
+		return SIZE;
+	}
 }

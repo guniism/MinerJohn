@@ -4,9 +4,10 @@ import javafx.scene.canvas.GraphicsContext;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Ore extends Block {
+public class Ore extends Block implements Pickaxeable{
 	private static final Map<Integer, int[]> ORE_MAP = new HashMap<>();
 	private int oreId; 
+	private int health;
 	static {
 		ORE_MAP.put(0, new int[] { 0, 0 }); // Rock
 		ORE_MAP.put(1, new int[] { 1, 0 }); // SmoothStone
@@ -16,9 +17,11 @@ public class Ore extends Block {
 		ORE_MAP.put(5, new int[] { 5, 0 }); // Diamond
 	}
 
-	public Ore(int oreId, String imagePath) {
-	    super(imagePath);
 
+	public Ore(int oreId) {
+	    super("item-sprite.png");
+	    this.health = 2;
+	    
 	    if (ORE_MAP.containsKey(oreId)) {
 	    	this.oreId = oreId;
 	        this.tileCol = ORE_MAP.get(oreId)[0];
@@ -38,8 +41,8 @@ public class Ore extends Block {
 		int tileWidth = 16;
 		int tileHeight = 16;
 
-		double srcX = tileCol * tileWidth; 
-		double srcY = tileRow * tileHeight;
+		double srcX = this.tileCol * tileWidth; 
+		double srcY =  this.tileRow * tileHeight;
 		double destX = 0;
 		double destY = 0;
 
@@ -48,6 +51,7 @@ public class Ore extends Block {
 	}
 
 
+	
 	public int getOreId() {
 		return oreId;
 	}
@@ -55,4 +59,17 @@ public class Ore extends Block {
 	public void setOreId(int oreId) {
 		this.oreId = oreId;
 	}
+
+
+	@Override
+	public boolean isBrokeFromBreak(int damage) {
+		// TODO Auto-generated method stub
+		if(this.health - damage <= 0) {
+			this.health = 0;
+			return true;
+		}
+		this.health =  this.health - damage;
+		return false;
+	}
+	
 }

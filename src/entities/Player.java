@@ -62,9 +62,9 @@ public class Player extends Canvas {
     // Animation speed control
     private int frameDelay = 10; // Movement animation speed
     private int frameCounter = 0;
-    private int miningFrameDelay = 15; // Mining animation speed
+    private int miningFrameDelay = 10; // Mining animation speed
     private int miningFrameCounter = 0;
-    private int attackingFrameDelay = 15; // Attacking animation speed (faster than mining)
+    private int attackingFrameDelay = 10; // Attacking animation speed (faster than mining)
     private int attackingFrameCounter = 0;
     
     private static Item usingItem;
@@ -79,6 +79,7 @@ public class Player extends Canvas {
         setX(1080 / 2 - WIDTH / 2);
         setY(720 / 2 - HEIGHT / 2 - HEIGHT / 4);
 
+
         // Load sprite sheets
         String playerPath = ClassLoader.getSystemResource("boy.png").toString();
         spriteSheet = new Image(playerPath);
@@ -89,7 +90,8 @@ public class Player extends Canvas {
         String attackingPath = ClassLoader.getSystemResource("boy-attack.png").toString();
         attackingSpriteSheet = new Image(attackingPath);
         
-        deathSpriteSheet = new Image(ClassLoader.getSystemResource("boy-dead.png").toString()); // Load death animation
+        String deadPath = ClassLoader.getSystemResource("boy-attack.png").toString();
+        deathSpriteSheet = new Image(deadPath); // Load death animation
         
         // Set canvas to the largest of the animations to accommodate all
         this.setWidth(Math.max(Math.max(WIDTH, miningFrameWidth * GameController.getScale()), 
@@ -114,7 +116,6 @@ public class Player extends Canvas {
                 containerGrid[i][j]=null;
             }
         }
-        
         setupAnimationTimer();
         draw(); // Draw initial frame
     }
@@ -546,6 +547,7 @@ public class Player extends Canvas {
 	public void setDying(boolean isDying) {
 		this.isDying = isDying;
 	}
+
     
     
 }

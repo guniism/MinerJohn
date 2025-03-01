@@ -215,12 +215,17 @@ public class Slime extends Monster {
         gc.setImageSmoothing(false);
 
         // ✅ Set the correct animation row
-        int row = switch (lastDirection) {
-            case "up" -> jumping ? 3 : 2;     // Jump up / Idle up
-            case "down" -> jumping ? 1 : 0;   // Jump down / Idle down
-            case "right", "left" -> jumping ? 5 : 4; // Right animation used for both right & left
-            default -> 0;
-        };
+        int row;
+        if (lastDirection.equals("up")) {
+            row = jumping ? 3 : 2; // Jump up / Idle up
+        } else if (lastDirection.equals("down")) {
+            row = jumping ? 1 : 0; // Jump down / Idle down
+        } else if (lastDirection.equals("right") || lastDirection.equals("left")) {
+            row = jumping ? 5 : 4; // Right animation used for both right & left
+        } else {
+            row = 0;
+        }
+
 
         double srcX = frameIndex * frameWidth;
         double srcY = row * frameHeight;
