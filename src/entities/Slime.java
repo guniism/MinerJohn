@@ -194,9 +194,20 @@ public class Slime extends Monster {
 
         if (isColliding && canDamage) {
             System.out.println("Slime hit the player!");
-            canDamage = false;
+            GameController.getGamePane().reducePlayerHealth(1); // Reduce health by 1
+
+            canDamage = false; // Prevent instant repeated damage
+            new Thread(() -> { 
+                try {
+                    Thread.sleep(2000); // 1-second cooldown before it can damage again
+                    canDamage = true;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
         }
     }
+
 
     public void draw() {
         GraphicsContext gc = this.getGraphicsContext2D();

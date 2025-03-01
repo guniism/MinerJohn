@@ -1,16 +1,18 @@
 package entities;
 
 import game.GameController;
+import game.MainPane;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import ui.HealthStamBar;
 import world.Block;
 import java.util.List;
 
 public class Zombie extends Monster {
 	private final int WIDTH;
 	private final int HEIGHT;
-	private Image spriteSheet;
+	private Image spriteSheet, zombieBitingSpriteSheet;
 	private int frameIndex;
 	private final int totalFrames = 8;
 	private final int frameWidth = 16;
@@ -26,6 +28,14 @@ public class Zombie extends Monster {
 	private double moveSpeed = 0.5;
 	private String lastDirection = "down";
 
+	private boolean isBiting = false;
+	private final int bitingTotalFrames = 3;
+	private final int bitingFrameWidth = 16;
+	private final int bitingFrameHeight = 32;
+	private int bitingFrameIndex = 0;
+	private int bitingFrameDelay = 15;
+	private int bitingFrameCounter = 0;
+
 	public Zombie(double x, double y, int blood, int damage, int speed, Player player) {
 		super(x, y, blood, damage, speed);
 		this.player = player;
@@ -35,8 +45,11 @@ public class Zombie extends Monster {
 		String path = ClassLoader.getSystemResource("zombie.png").toString();
 		spriteSheet = new Image(path);
 
-		this.setWidth(WIDTH);
-		this.setHeight(HEIGHT);
+		path = ClassLoader.getSystemResource("zombie-attack-sprite.png").toString();
+		zombieBitingSpriteSheet = new Image(path);
+
+		this.setWidth(Math.max(WIDTH, bitingFrameWidth * GameController.getScale()));
+        this.setHeight(Math.max(HEIGHT, bitingFrameHeight * GameController.getScale()));
 		this.setLayoutX(x);
 		this.setLayoutY(y);
 
@@ -83,6 +96,9 @@ public class Zombie extends Monster {
 	}
 
 	private void moveTowardPlayer() {
+		if (isBiting)
+			return; // Stop moving if already biting
+
 		double playerX = player.getLayoutX() + 16 * GameController.getScale();
 		double playerY = player.getLayoutY() + 8 * GameController.getScale();
 		double zombieX = this.getLayoutX();
@@ -90,6 +106,12 @@ public class Zombie extends Monster {
 
 		double diffX = playerX - zombieX;
 		double diffY = playerY - zombieY;
+		double distance = Math.sqrt(diffX * diffX + diffY * diffY);
+
+		if (distance < 20 * GameController.getScale()) { // If close enough, start biting
+			startBiting();
+			return;
+		}
 
 		double length = Math.sqrt(diffX * diffX + diffY * diffY);
 		double dx = (diffX / length) * moveSpeed;
@@ -98,29 +120,21 @@ public class Zombie extends Monster {
 		movingRight = movingLeft = movingUp = movingDown = false;
 
 		if (Math.abs(diffX) > Math.abs(diffY)) {
-			if (diffX > 0) {
+			if (diffX > 0)
 				movingRight = true;
-			} else {
+			else
 				movingLeft = true;
-			}
 		} else {
-			if (diffY > 0) {
+			if (diffY > 0)
 				movingDown = true;
-			} else {
+			else
 				movingUp = true;
-			}
 		}
 
-		// **Collision Check: Prevent movement through blocks and other zombies**
-		boolean canMoveX = !isColliding(dx, 0) && !isZombieColliding(dx, 0);
-		boolean canMoveY = !isColliding(0, dy) && !isZombieColliding(0, dy);
-
-		if (canMoveX) {
+		if (!isColliding(dx, 0))
 			this.setLayoutX(zombieX + dx);
-		}
-		if (canMoveY) {
+		if (!isColliding(0, dy))
 			this.setLayoutY(zombieY + dy);
-		}
 	}
 
 	private boolean isColliding(double dx, double dy) {
@@ -151,7 +165,22 @@ public class Zombie extends Monster {
 
 		return false;
 	}
+	
+	private boolean isPlayerInRange() {
+        double playerX = player.getLayoutX();
+        double playerY = player.getLayoutY();
+        double playerWidth = player.getWidth();
+        double playerHeight = player.getHeight();
 
+        double zombieX = this.getLayoutX();
+        double zombieY = this.getLayoutY();
+        double zombieWidth = this.getWidth();
+        double zombieHeight = this.getHeight();
+
+        return playerX + playerWidth > zombieX && playerX < zombieX + zombieWidth &&
+               playerY + playerHeight > zombieY && playerY < zombieY + zombieHeight;
+    }
+	
 	private boolean isZombieColliding(double dx, double dy) {
 		double nextX = this.getLayoutX() + dx;
 		double nextY = this.getLayoutY() + dy;
@@ -183,43 +212,95 @@ public class Zombie extends Monster {
 
 		return false;
 	}
-
+	
+	
+	
 	public void draw() {
 		GraphicsContext gc = this.getGraphicsContext2D();
 		gc.clearRect(0, 0, this.getWidth(), this.getHeight());
 		gc.setImageSmoothing(false);
 
-		int row = 0;
-
-		if (isMoving) {
-			if (movingRight || movingLeft) {
-				row = 2;
-			} else if (movingUp) {
-				row = 1;
-			} else if (movingDown) {
-				row = 0;
-			}
+		if (isBiting) {
+			drawBitingAnimation(gc);
 		} else {
-			switch (lastDirection) {
-			case "right":
-				row = 2;
-				break;
-			case "up":
-				row = 1;
-				break;
-			case "down":
-				row = 0;
-				break;
-			case "left":
-				row = 2;
-				break;
-			}
+			drawMovementAnimation(gc);
+		}
+	}
+
+	private void drawBitingAnimation(GraphicsContext gc) {
+        int row;
+        switch (lastDirection) {
+            case "up":
+                row = 1;
+                break;
+            case "right":
+                row = 2;
+                break;
+            case "left":
+                row = 2;
+                break;
+            case "down":
+            default:
+                row = 0;
+                break;
+        }
+
+        double srcX = bitingFrameIndex * bitingFrameWidth;
+        double srcY = row * bitingFrameHeight;
+        
+        double drawX = (this.getWidth() - bitingFrameWidth * GameController.getScale()) / 2;
+        double drawY = (this.getHeight() - bitingFrameHeight * GameController.getScale()) / 2;
+        
+        if (lastDirection.equals("left")) {
+            gc.save();
+            gc.translate(drawX + bitingFrameWidth * GameController.getScale(), drawY);
+            gc.scale(-1, 1);
+            gc.drawImage(zombieBitingSpriteSheet, srcX, srcY, bitingFrameWidth, bitingFrameHeight, 0, 0, bitingFrameWidth * GameController.getScale(), bitingFrameHeight * GameController.getScale());
+            gc.restore();
+        } else {
+            gc.drawImage(zombieBitingSpriteSheet, srcX, srcY, bitingFrameWidth, bitingFrameHeight, drawX, drawY, bitingFrameWidth * GameController.getScale(), bitingFrameHeight * GameController.getScale());
+        }
+
+        bitingFrameCounter++;
+        if (bitingFrameCounter >= bitingFrameDelay*3) {
+            bitingFrameCounter = 0;
+            bitingFrameIndex++;
+            
+            if (bitingFrameIndex >= bitingTotalFrames) {
+                bitingFrameIndex = 0;
+                
+                // Check if player is still within range, then deal damage
+                if (isPlayerInRange()) {
+                	GameController.getGamePane().reducePlayerHealth(1);
+                }
+                
+                isBiting = false; // Reset biting state after animation completes
+            }
+        }
+    }
+
+	private void drawMovementAnimation(GraphicsContext gc) {
+		int row;
+		switch (lastDirection) {
+		case "right":
+			row = 2;
+			break;
+		case "left":
+			row = 2; // Uses right sprites but flipped
+			break;
+		case "up":
+			row = 1;
+			break;
+		case "down":
+		default:
+			row = 0;
+			break;
 		}
 
 		double srcX = frameIndex * frameWidth;
 		double srcY = row * frameHeight;
 
-		if (movingLeft || (!isMoving && lastDirection.equals("left"))) {
+		if (lastDirection.equals("left")) {
 			gc.save();
 			gc.translate(WIDTH, 0);
 			gc.scale(-1, 1);
@@ -229,4 +310,11 @@ public class Zombie extends Monster {
 			gc.drawImage(spriteSheet, srcX, srcY, frameWidth, frameHeight, 0, 0, WIDTH, HEIGHT);
 		}
 	}
+
+	private void startBiting() {
+		isBiting = true;
+		bitingFrameIndex = 0;
+		bitingFrameCounter = 0;
+	}
+	
 }

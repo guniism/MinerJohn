@@ -11,7 +11,7 @@ public class MainPane extends Pane {
     private static Text floorText;
     private static int FloorNum;
     private GamePane gamePane; // Store the GamePane here
-
+    private HealthStamBar hBar,sBar;
     public MainPane() {
         // Create and store the GamePane
         gamePane = new GamePane(this);
@@ -23,11 +23,11 @@ public class MainPane extends Pane {
         inventory.setLayoutY(600);
         this.getChildren().add(inventory);
 
-        HealthStamBar hBar = new HealthStamBar(true, 30);
+        hBar = new HealthStamBar(true, 30);
         hBar.setLayoutX(100);
         hBar.setLayoutY(30);
         
-        HealthStamBar sBar = new HealthStamBar(false, 30);
+        sBar = new HealthStamBar(false, 30);
         sBar.setLayoutX(100);
         sBar.setLayoutY(75);
         
@@ -63,6 +63,7 @@ public class MainPane extends Pane {
         
         Player.addItem(new Item(0, 0), Player.containerGrid);
         Player.addItem(ItemRegistry.getItemById("Silver_Pickaxe"), Player.containerGrid);
+        Player.addItem(ItemRegistry.getItemById("Silver_Shovel"), Player.containerGrid);
     }
     
     // Getter method to retrieve the stored GamePane
@@ -81,4 +82,21 @@ public class MainPane extends Pane {
 	public static void setFloorNum(int floorNum) {
 		FloorNum = floorNum;
 	}
+
+	public HealthStamBar gethBar() {
+		return hBar;
+	}
+
+	public void sethBar(HealthStamBar hBar) {
+		this.hBar = hBar;
+	}
+
+	public HealthStamBar getsBar() {
+		return sBar;
+	}
+
+	public void setsBar(HealthStamBar sBar) {
+		this.sBar = sBar;
+	}
+	
 }

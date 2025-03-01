@@ -17,6 +17,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import ui.Bag;
 import ui.CloseButtonPane;
+import ui.HealthStamBar;
 import ui.InventoryButton;
 import world.Block;
 import world.Ladder;
@@ -57,12 +58,10 @@ public class GamePane extends Pane {
 		this.playerCenterAbsY = this.player.getY() + this.getLayoutY();
 		transitionScreen = new Rectangle();
 		transitionScreen.setFill(Color.BLACK);
-		transitionScreen.setOpacity(0); // Initially transparent
-
-		// Ensure the fade screen is always on top of everything
-		transitionScreen.setViewOrder(-1000); // Negative values keep it on top
-
+		transitionScreen.setOpacity(0);
+		transitionScreen.setViewOrder(-1000);
 		this.getChildren().add(transitionScreen);
+
 		// Generate random rocks
 		generateRandomBlocks();
 		// Generate random ladder
@@ -85,10 +84,22 @@ public class GamePane extends Pane {
 			return;
 		}
 
+		if (Player.getUsingItem() == null) {
+			System.out.println("Do nothing");
+			return;
+		}
+
 		// Only execute mining if ladder wasn’t clicked
-		else if (!player.isMining() && player.canMove()) {
+		if (Player.getUsingItem().getRow() == 2 && Player.getUsingItem().getCol() == 2) {
+			System.out.println("player is Mining");
 			player.setMining(true);
 			player.mine();
+		}
+
+		else if (Player.getUsingItem().getRow() == 3 && Player.getUsingItem().getCol() == 1) {
+			System.out.println("player is Attacking");
+			player.setAttacking(true);
+			player.attack();
 		}
 	}
 
@@ -154,8 +165,8 @@ public class GamePane extends Pane {
 		double scale = GameController.getScale();
 		double safeDistance = 20 * scale; // minimum distance from player's spawn
 		// Assume player's spawn is at player's initial coordinates:
-		double playerSpawnX = player.getX();
-		double playerSpawnY = player.getY();
+		double playerSpawnX = player.getX() + 16 * GameController.getScale();
+		double playerSpawnY = player.getY() + 16 * GameController.getScale();
 		// Check that the candidate spawn is at least safeDistance away from player
 		// spawn.
 		double dx = x - playerSpawnX;
@@ -319,26 +330,26 @@ public class GamePane extends Pane {
 
 		if (player.canMove()) {
 			if (GameController.getKeyboardController().isMoveUp()) {
-				if (this.player.getY() >= 180 && !isColliding(0, -this.player.getSpeed())) {
+				if (this.player.getY() >= 140 && !isColliding(0, -this.player.getSpeed())) {
 					dy -= this.player.getSpeed();
 					movingUp = true;
 				}
 			}
 			if (GameController.getKeyboardController().isMoveDown()) {
-				if (this.player.getY() <= 900 && !isColliding(0, this.player.getSpeed())) {
+				if (this.player.getY() <= 860 && !isColliding(0, this.player.getSpeed())) {
 					dy += this.player.getSpeed();
 					movingDown = true; // Start walking down animation
 				}
 			}
 			if (GameController.getKeyboardController().isMoveLeft()) {
-				if (this.player.getX() >= 3 * 16 * GameController.getScale()
+				if (this.player.getX() >= 1.8 * 16 * GameController.getScale()
 						&& !isColliding(-this.player.getSpeed(), 0)) {
 					dx -= this.player.getSpeed();
 					movingLeft = true;
 				}
 			}
 			if (GameController.getKeyboardController().isMoveRight()) {
-				if (this.player.getX() <= 2258 && !isColliding(this.player.getSpeed(), 0)) {
+				if (this.player.getX() <= 2178 && !isColliding(this.player.getSpeed(), 0)) {
 					dx += this.player.getSpeed();
 					movingRight = true;
 				}
@@ -362,7 +373,7 @@ public class GamePane extends Pane {
 		double newLayoutY = playerCenterAbsY - this.player.getY();
 		newLayoutX = Math.max(-1440, Math.min(0, newLayoutX));
 		newLayoutY = Math.max(-540, Math.min(0, newLayoutY));
-
+		// System.out.println(newLayoutX);
 		this.setLayoutX(newLayoutX);
 		this.setLayoutY(newLayoutY);
 
@@ -459,6 +470,7 @@ public class GamePane extends Pane {
 				if (distance <= range) {
 					// Disable mining and reset any mining attack flag
 					player.setMining(false);
+					player.setCanMove(false);
 					GameController.getKeyboardController().setAttacking(false);
 					enterNextFloor();
 					MainPane.setFloorText((MainPane.getFloorNum() + 1) + "");
@@ -493,8 +505,9 @@ public class GamePane extends Pane {
 						blocks.clear();
 						generateRandomBlocks();
 						generateRandomLadder();
-						double startX = 1080 / 2 - player.getWidth() / 2;
-						double startY = 720 / 2 - player.getHeight() / 2 - player.getHeight() / 4;
+						double startX = 1080 / 2 - player.getWidth() / 2 - 16 * GameController.getScale();
+						double startY = 720 / 2 - player.getHeight() / 2 - player.getHeight() / 4
+								- 8 * GameController.getScale();
 						player.setX(startX);
 						player.setY(startY);
 						player.setLayoutX(startX);
@@ -511,17 +524,123 @@ public class GamePane extends Pane {
 		FadeTransition fadeOut = new FadeTransition(Duration.seconds(1.5), transitionScreen);
 		fadeOut.setFromValue(1);
 		fadeOut.setToValue(0);
+		fadeOut.setOnFinished(event -> player.setCanMove(true));
 
 		SequentialTransition transition = new SequentialTransition(fadeIn, pause, resetFloor, fadeOut);
 		transition.play();
 	}
 
 	private void updateOverlaySize() {
-		transitionScreen.setWidth(gameMap.getWidth());
-		transitionScreen.setHeight(gameMap.getHeight());
-		transitionScreen.toFront();
+	    transitionScreen.setWidth(this.getWidth());
+	    transitionScreen.setHeight(this.getHeight());
+	    transitionScreen.toFront(); // Ensure it's on top
 	}
 
+
+	public void reducePlayerHealth(int damage) {
+	    // Prevent taking damage if already dead
+	    if (player.isDead()) return;
+
+	    MainPane mainPane = (MainPane) mother;
+	    if (mainPane != null) {
+	        HealthStamBar healthBar = mainPane.gethBar();
+	        int currentHealth = healthBar.getBarAmount();
+
+	        int newHealth = Math.max(0, currentHealth - damage);
+	        healthBar.setBarAmount(newHealth);
+
+	        if (newHealth == 0 && !player.isDead()) {
+	            System.out.println("Player is dead!");
+	            player.die(() -> resetGame()); // Only called once
+	        }
+	    }
+	}
+
+
+	
+	private void resetGame() {
+	    System.out.println("Resetting game...");
+	    MainPane mainPane = (MainPane) mother;
+
+	    // ✅ Ensure transitionScreen covers the entire game area
+	    updateOverlaySize();
+	    transitionScreen.toFront(); // Ensure fade effect is on top
+
+	    // Fade out to black
+	    FadeTransition fadeOut = new FadeTransition(Duration.seconds(1.5), transitionScreen);
+	    fadeOut.setFromValue(0);
+	    fadeOut.setToValue(1);
+
+	    // Pause before resetting
+	    PauseTransition pause = new PauseTransition(Duration.seconds(1));
+
+	    // Reset logic
+	    Transition resetLogic = new Transition() {
+	        {
+	            setCycleDuration(Duration.seconds(0.1));
+	        }
+
+	        @Override
+	        protected void interpolate(double frac) {
+	            if (frac == 1.0) {
+	                Platform.runLater(() -> {
+	                    // Remove all game objects
+	                    getChildren().removeAll(blocks);
+	                    getChildren().removeAll(slimes);
+	                    getChildren().removeAll(zombies);
+
+	                    blocks.clear();
+	                    slimes.clear();
+	                    zombies.clear();
+
+	                    // Regenerate world
+	                    generateRandomBlocks();
+	                    generateRandomLadder();
+	                    generateRandomSlimes();
+	                    generateRandomZombies();
+
+	                    // Reset player stats
+	                    player.setX(1080 / 2 - player.getWidth() / 2 - 16 * GameController.getScale());
+	                    player.setY(720 / 2 - player.getHeight() / 2 - player.getHeight() / 4 - 8 * GameController.getScale());
+	                    player.setLayoutX(player.getX());
+	                    player.setLayoutY(player.getY());
+	                    player.setAttacking(false);
+	                    player.setMining(false);
+	                    player.setCanMove(true);
+
+	                    // Reset player's health
+	                    MainPane mainPane = (MainPane) mother;
+	                    if (mainPane != null) {
+	                        mainPane.gethBar().setBarAmount(30); // Reset health to full
+	                    }
+
+	                    // Ensure the player is added back
+	                    if (!getChildren().contains(player)) {
+	                        getChildren().add(player);
+	                    }
+	                });
+	            }
+	        }
+	    };
+
+	    // Fade in after resetting
+	    FadeTransition fadeIn = new FadeTransition(Duration.seconds(1.5), transitionScreen);
+	    fadeIn.setFromValue(1);
+	    fadeIn.setToValue(0);
+	    fadeIn.setOnFinished(event -> {
+	        player.setCanMove(true);
+	        player.setDead(false);
+	        player.setDying(false);
+	    });
+
+
+	    // Play reset sequence
+	    SequentialTransition resetSequence = new SequentialTransition(fadeOut, pause, resetLogic, fadeIn);
+	    resetSequence.play();
+	    
+	}
+
+	
 	public static boolean isPass() {
 		return pass;
 	}

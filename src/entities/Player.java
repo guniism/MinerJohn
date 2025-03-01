@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import game.GameController;
 import game.Item;
 import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -19,6 +20,8 @@ public class Player extends Canvas {
 
     private Image spriteSheet;
     private Image miningSpriteSheet;
+    private Image attackingSpriteSheet; 
+    private Image deathSpriteSheet; 
     private int frameIndex;
     private final int totalFrames = 8; // 8 frames for walking animation
     private final int frameWidth = 16;
@@ -30,6 +33,20 @@ public class Player extends Canvas {
     private final int miningFrameHeight = 48;
     private int miningFrameIndex = 0;
     
+    // Attacking animation properties
+    private final int attackingTotalFrames = 3; // 3 frames for attacking animation
+    private final int attackingFrameWidth = 48;
+    private final int attackingFrameHeight = 48;
+    private int attackingFrameIndex = 0;
+    
+    private final int deathTotalFrames = 4; // 4 frames for death animation
+    private final int deathFrameWidth = 32;
+    private final int deathFrameHeight = 32;
+    private int deathFrameIndex = 0;
+    private int deathFrameDelay = 15;
+    private int deathFrameCounter = 0;
+    private boolean isDying = false;
+    private boolean isDead = false;
     // Direction
     private boolean movingUp, movingDown, movingRight, movingLeft;
     private String lastDirection = "down"; // Tracks the last direction moved
@@ -38,6 +55,7 @@ public class Player extends Canvas {
     // State
     private boolean canMove = true;
     private boolean isMining = false;
+    private boolean isAttacking = false;
     
     private AnimationTimer animationTimer;
 
@@ -46,10 +64,13 @@ public class Player extends Canvas {
     private int frameCounter = 0;
     private int miningFrameDelay = 15; // Mining animation speed
     private int miningFrameCounter = 0;
+    private int attackingFrameDelay = 15; // Attacking animation speed (faster than mining)
+    private int attackingFrameCounter = 0;
+    
     private static Item usingItem;
 
-	public static ArrayList<ArrayList<Item>> Inventory;
-	public static ContainerPane[][] containerGrid= new ContainerPane[5][5];
+    public static ArrayList<ArrayList<Item>> Inventory;
+    public static ContainerPane[][] containerGrid= new ContainerPane[5][5];
 
     public Player() {
         WIDTH = frameWidth * GameController.getScale();
@@ -64,98 +85,115 @@ public class Player extends Canvas {
         
         String miningPath = ClassLoader.getSystemResource("boy_useaxe.png").toString();
         miningSpriteSheet = new Image(miningPath);
-
-        // Set canvas to the larger of the two animations to accommodate both
-        this.setWidth(Math.max(WIDTH, miningFrameWidth * GameController.getScale()));
-        this.setHeight(Math.max(HEIGHT, miningFrameHeight * GameController.getScale()));
-//        this.setWidth(Math.max(WIDTH, frameWidth * GameController.getScale()));
-//        this.setHeight(Math.max(HEIGHT, frameHeight * GameController.getScale()));
+        
+        String attackingPath = ClassLoader.getSystemResource("boy-attack.png").toString();
+        attackingSpriteSheet = new Image(attackingPath);
+        
+        deathSpriteSheet = new Image(ClassLoader.getSystemResource("boy-dead.png").toString()); // Load death animation
+        
+        // Set canvas to the largest of the animations to accommodate all
+        this.setWidth(Math.max(Math.max(WIDTH, miningFrameWidth * GameController.getScale()), 
+                             attackingFrameWidth * GameController.getScale()));
+        this.setHeight(Math.max(Math.max(HEIGHT, miningFrameHeight * GameController.getScale()), 
+                              attackingFrameHeight * GameController.getScale()));
 
         frameIndex = 0;
         movingDown = false;
 
         Inventory = new ArrayList<>();
 
-		for (int i = 0; i < 5; i++) {
-			ArrayList<Item> row = new ArrayList<>();
-			for (int j = 0; j < 5; j++) {
-				row.add(null);
-			}
-			Inventory.add(row);
-		}
-		for(int i=0;i<5;i++) {
-			for(int j=0;j<5;j++) {
-				containerGrid[i][j]=null;
-			}
-		}
+        for (int i = 0; i < 5; i++) {
+            ArrayList<Item> row = new ArrayList<>();
+            for (int j = 0; j < 5; j++) {
+                row.add(null);
+            }
+            Inventory.add(row);
+        }
+        for(int i=0;i<5;i++) {
+            for(int j=0;j<5;j++) {
+                containerGrid[i][j]=null;
+            }
+        }
         
         setupAnimationTimer();
         draw(); // Draw initial frame
     }
+    
     public static boolean addItem(Item item, ContainerPane[][] containerGrid) {
-	    for (int row = 0; row < 5; row++) {
-	        for (int col = 0; col < 5; col++) {
-	            if (Inventory.get(row).get(col) == null) {
-	                Inventory.get(row).set(col, item);
-	                
-	                if (containerGrid != null&&row==0) {
-	                    containerGrid[row][col].loadItemFromInventory();
-	                    containerGrid[row][col].drawContainer();
-	                }
-	                return true;
-	            }
-	        }
-	    }
-	    return false;
-	}
+        for (int row = 0; row < 5; row++) {
+            for (int col = 0; col < 5; col++) {
+                if (Inventory.get(row).get(col) == null) {
+                    Inventory.get(row).set(col, item);
+                    
+                    if (containerGrid != null&&row==0) {
+                        containerGrid[row][col].loadItemFromInventory();
+                        containerGrid[row][col].drawContainer();
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
+    public static boolean useItem(Item item, int amount, ContainerPane[][] containerGrid) {
+        int count = 0;
 
-	public static boolean useItem(Item item, int amount, ContainerPane[][] containerGrid) {
-	    int count = 0;
+        for (int row = 4; row >=0; row--) {
+            for (int col =4; col >=0; col--) {
+                if (Inventory.get(row).get(col) != null && Inventory.get(row).get(col).equals(item)) {
+                    count++;
+                }
+            }
+        }
 
-	    for (int row = 4; row >=0; row--) {
-	        for (int col =4; col >=0; col--) {
-	            if (Inventory.get(row).get(col) != null && Inventory.get(row).get(col).equals(item)) {
-	                count++;
-	            }
-	        }
-	    }
+        if (count < amount) return false;
 
-	    if (count < amount) return false;
+        for (int row = 4; row >=0; row--) {
+            for (int col =4; col >=0; col--) {
+                if (Inventory.get(row).get(col) != null && Inventory.get(row).get(col).equals(item) && amount > 0) {
+                    Inventory.get(row).set(col, null);
+                    amount--;
 
-	    for (int row = 4; row >=0; row--) {
-	        for (int col =4; col >=0; col--) {
-	            if (Inventory.get(row).get(col) != null && Inventory.get(row).get(col).equals(item) && amount > 0) {
-	                Inventory.get(row).set(col, null);
-	                amount--;
+                    if (containerGrid != null&&row==0) {
+                        containerGrid[row][col].loadItemFromInventory();
+                        containerGrid[row][col].drawContainer();
+                    }
+                }
+            }
+        }
+        return true;
+    }
 
-	                if (containerGrid != null&&row==0) {
-	                    containerGrid[row][col].loadItemFromInventory();
-	                    containerGrid[row][col].drawContainer();
-	                }
-	            }
-	        }
-	    }
-	    return true;
-	}
-
-
-	public static ArrayList<ArrayList<Item>> getInventory() {
-		return Inventory;
-	}
+    public static ArrayList<ArrayList<Item>> getInventory() {
+        return Inventory;
+    }
+    
     public static Item getUsingItem() {
-		return usingItem;
-	}
+        return usingItem;
+    }
 
-	public static void setUsingItem(Item usingItem) {
-		Player.usingItem = usingItem;
-	}
+    public static void setUsingItem(Item usingItem) {
+        Player.usingItem = usingItem;
+    }
 
     private void setupAnimationTimer() {
         animationTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                if (isMining) {
+                if (isAttacking) {
+                    attackingFrameCounter++;
+                    if (attackingFrameCounter >= attackingFrameDelay) {
+                        attackingFrameCounter = 0;
+                        attackingFrameIndex = (attackingFrameIndex + 1) % attackingTotalFrames;
+                        
+                        // If we've completed the animation cycle, stop attacking
+                        if (attackingFrameIndex == 0) {
+                            isAttacking = false;
+                            setCanMove(true);
+                        }
+                    }
+                } else if (isMining) {
                     miningFrameCounter++;
                     if (miningFrameCounter >= miningFrameDelay) {
                         miningFrameCounter = 0;
@@ -201,19 +239,20 @@ public class Player extends Canvas {
         gc.clearRect(0, 0, this.getWidth(), this.getHeight());
         gc.setImageSmoothing(false);
 
-        if (isMining) {
-            // Draw mining animation
-            drawMiningAnimation(gc);
+        if (isDying) {
+            drawDeathAnimation(gc);  // Draw death animation when dying
+        } else if (isAttacking) {
+            drawAttackingAnimation(gc);  // Draw attacking animation
+        } else if (isMining) {
+            drawMiningAnimation(gc);  // Draw mining animation
         } else {
-            // Draw movement animation
-            drawMovementAnimation(gc);
+            drawMovementAnimation(gc);  // Draw normal movement animation
         }
     }
     
     private void drawMovementAnimation(GraphicsContext gc) {
         int row = 0;
-//        this.setWidth(Math.max(WIDTH, frameWidth * GameController.getScale()));
-//        this.setHeight(Math.max(HEIGHT, frameHeight * GameController.getScale()));
+        
         if (isMoving) {    
             if (movingRight || movingLeft) {
                 row = 2; // Use walking right animation row for both right and left
@@ -253,8 +292,7 @@ public class Player extends Canvas {
     
     private void drawMiningAnimation(GraphicsContext gc) {
         int row;
-//        this.setWidth(Math.max(WIDTH, miningFrameWidth * GameController.getScale()));
-//        this.setHeight(Math.max(HEIGHT, miningFrameHeight * GameController.getScale()));
+        
         // Select the correct row based on direction
         switch (lastDirection) {
             case "up":
@@ -271,6 +309,7 @@ public class Player extends Canvas {
                 row = 0;
                 break;
         }
+        
         setCanMove(false);
         double srcX = miningFrameIndex * miningFrameWidth;
         double srcY = row * miningFrameHeight;
@@ -294,8 +333,123 @@ public class Player extends Canvas {
         }
     }
     
+    private void drawAttackingAnimation(GraphicsContext gc) {
+        int row;
+        
+        // Select the correct row based on direction
+        switch (lastDirection) {
+            case "up":
+                row = 1;
+                break;
+            case "right":
+                row = 2;
+                break;
+            case "left":
+                row = 2; // Uses right sprites but flipped
+                break;
+            case "down":
+            default:
+                row = 0;
+                break;
+        }
+        
+        setCanMove(false);
+        double srcX = attackingFrameIndex * attackingFrameWidth;
+        double srcY = row * attackingFrameHeight;
+        
+        // Calculate position to center the attacking sprite on the canvas
+        double drawX = (this.getWidth() - attackingFrameWidth * GameController.getScale()) / 2;
+        double drawY = (this.getHeight() - attackingFrameHeight * GameController.getScale()) / 2;
+        
+        // Check if attacking left, then flip the sprite
+        if (lastDirection.equals("left")) {
+            gc.save(); // Save the current state
+            gc.translate(drawX + attackingFrameWidth * GameController.getScale(), drawY); // Position for flipping
+            gc.scale(-1, 1); // Flip horizontally
+            gc.drawImage(attackingSpriteSheet, srcX, srcY, attackingFrameWidth, attackingFrameHeight, 
+                       0, 0+40, attackingFrameWidth * GameController.getScale(), attackingFrameHeight * GameController.getScale());
+            gc.restore(); // Restore the original state
+        } else {
+            // Draw normally for other directions
+            gc.drawImage(attackingSpriteSheet, srcX, srcY, attackingFrameWidth, attackingFrameHeight, 
+                       drawX, drawY+40, attackingFrameWidth * GameController.getScale(), attackingFrameHeight * GameController.getScale());
+        }
+    }
+    
+    public void die(Runnable onDeathComplete) {
+        if (isDead) return; // Prevent multiple deaths
+        isDead = true; // Mark player as dead
+
+        System.out.println("Playing death animation...");
+        isDying = true;
+        deathFrameIndex = 0; // Reset animation
+
+        // Disable movement
+        setCanMove(false);
+
+        // Start death animation
+        AnimationTimer deathAnimation = new AnimationTimer() {
+            private int deathFrameCounter = 0;
+
+            @Override
+            public void handle(long now) {
+                deathFrameCounter++;
+                if (deathFrameCounter >= deathFrameDelay) {
+                    deathFrameCounter = 0;
+                    if (deathFrameIndex < deathTotalFrames - 1) {
+                        deathFrameIndex++;
+                    } else {
+                        stop(); // Stop animation when complete
+                        Platform.runLater(() -> {
+                            onDeathComplete.run();
+                            isDead = false; // Reset for next life
+                        });
+                    }
+                }
+                draw(); // Keep updating the frame
+            }
+        };
+
+        deathAnimation.start();
+    }
+
+    
+    private void drawDeathAnimation(GraphicsContext gc) {
+        double srcX = deathFrameIndex * deathFrameWidth;
+        double srcY = 0; // Assuming the death animation is in a single row
+
+        double drawX = (this.getWidth() - deathFrameWidth * GameController.getScale()) / 2;
+        double drawY = (this.getHeight() - deathFrameHeight * GameController.getScale()) / 2;
+
+        if (lastDirection.equals("left")) {
+            // Flip horizontally
+            gc.save();
+            gc.translate(drawX + deathFrameWidth * GameController.getScale(), drawY);
+            gc.scale(-1, 1);
+            gc.drawImage(deathSpriteSheet, srcX, srcY, deathFrameWidth, deathFrameHeight, 
+                         0, 0, deathFrameWidth * GameController.getScale(), deathFrameHeight * GameController.getScale());
+            gc.restore();
+        } else {
+            // Normal rendering (no flipping)
+            gc.drawImage(deathSpriteSheet, srcX, srcY, deathFrameWidth, deathFrameHeight, 
+                         drawX, drawY, deathFrameWidth * GameController.getScale(), deathFrameHeight * GameController.getScale());
+        }
+    }
+
+    
+    public void attack() {
+        if (!isAttacking && !isMining && canMove) {
+            setCanMove(false);
+            isAttacking = true;
+            
+            // Reset frame index to start animation from beginning
+            attackingFrameIndex = 0;
+            attackingFrameCounter = 0;
+        }
+    }
+    
     public void mine() {
-        if (!isMining && canMove) {
+        if (!isMining && !isAttacking && canMove) {
             setCanMove(false);
             isMining = true;
             
@@ -360,7 +514,38 @@ public class Player extends Canvas {
     public boolean isMining() {
         return isMining;
     }
-	public void setMining(boolean isMining) {
-		this.isMining = isMining;
+    
+    public void setMining(boolean isMining) {
+        this.isMining = isMining;
+    }
+    
+    public boolean isAttacking() {
+        return isAttacking;
+    }
+    
+    public void setAttacking(boolean isAttacking) {
+        this.isAttacking = isAttacking;
+    }
+    
+    public static Item getitem() {
+        return usingItem;
+    }
+
+	public boolean isDead() {
+		return isDead;
 	}
+
+	public void setDead(boolean isDead) {
+		this.isDead = isDead;
+	}
+
+	public boolean isDying() {
+		return isDying;
+	}
+
+	public void setDying(boolean isDying) {
+		this.isDying = isDying;
+	}
+    
+    
 }
