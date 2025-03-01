@@ -1,6 +1,5 @@
 package game;
 
-import entities.Monster;
 import entities.Slime;
 import entities.Zombie;
 import entities.Player;
@@ -23,10 +22,7 @@ import world.Block;
 import world.Ladder;
 import world.Map;
 import world.Ore;
-import world.Pickaxeable;
-
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -44,7 +40,7 @@ public class GamePane extends Pane {
 	private Block[][] blockArray;
 	private List<Block> blocks = new ArrayList<>(); // Store all rocks
 	private Rectangle transitionScreen;
-	private static final int ROCK_COUNT = 10; // Number of randomly placed rocks
+//	private static final int ROCK_COUNT = 10; // Number of randomly placed rocks
 	private int SLIME_COUNT = 3, ZOMBIE_COUNT = 3;
 	private List<Slime> slimes;
 	private List<Zombie> zombies;
@@ -73,11 +69,12 @@ public class GamePane extends Pane {
 //		generateRandomBlocks();
 		// Generate random ladder
 //		generateRandomLadder();
-		this.getChildren().add(this.player);
+
 //		generateRandomSlimes();
 //		generateRandomZombies();
 		// Set up mouse click event handler
 
+		this.getChildren().add(this.player);
 		setupMouseHandler();
 		startMovement();
 	}
@@ -186,70 +183,61 @@ public class GamePane extends Pane {
 		// Only execute mining if ladder wasn’t clicked
 		if (Player.getUsingItem().getRow() == 2 && Player.getUsingItem().getCol() == 0 && !player.isMining()) {
 			System.out.println("player is Mining");
-			System.out.println(player.getLastDirection());
-			double playerFootX = player.getX() + (8 + 24 - 8) * GameController.getScale();
-			double playerFootY = player.getY() + (32) * GameController.getScale();
-			System.out.println((int) playerFootX / GameController.getScale() / 16 + " "
-					+ (int) playerFootY / GameController.getScale() / 16);
-
 			player.setMining(true);
-			player.mine();       
-
-			double targetMineBlockX = 0;
-			double targetMineBlockY = 0;
-			switch (player.getLastDirection()) {
-			case "up":
-				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16);
-				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16) - 1;
-				break;
-			case "right":
-				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16) + 1;
-				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16);
-				break;
-			case "left":
-				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16) - 1;
-				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16);
-				break;
-			case "down":
-				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16);
-				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16) + 1;
-			default:
-
-				break;
-			}
-			if (targetMineBlockX != 0 && targetMineBlockY != 0) {
-				System.out.println("-----------");
-				System.out.println((int) targetMineBlockX + " " + (int) targetMineBlockY);
-				System.out.println("-----------");
-
-				// Use an iterator to safely remove elements from the blocks list
-				Iterator<Block> iterator = blocks.iterator();
-				while (iterator.hasNext()) {
-					Block block = iterator.next();
-
-					int blockCenX = (int) ((block.getLayoutX() + (8 * GameController.getScale()))
-							/ GameController.getScale() / 16);
-					int blockCenY = (int) ((block.getLayoutY() + (8 * GameController.getScale()))
-							/ GameController.getScale() / 16);
-
-					// Check if the block's coordinates match the target coordinates
-					if (blockCenX == (int) targetMineBlockX && blockCenY == (int) targetMineBlockY) {
-						int damage = 1;
-						
-				        if (block instanceof Pickaxeable) {
-//				            System.out.println("Pickaxeable.");
-				            Ore ore = (Ore) block;
-				            if(ore.isBrokeFromBreak(damage)) {
-				            	this.getChildren().remove(block);
-								iterator.remove();
-				            }
-				           
-				        }
-					}
-				}
-
-			} 
-
+			player.mine();
+			
+//			System.out.println(player.getLastDirection());
+//			double playerFootX = player.getX() + (8 + 24 - 8) * GameController.getScale();
+//			double playerFootY = player.getY() + (32) * GameController.getScale();
+//			System.out.println((int) playerFootX / GameController.getScale() / 16 + " "
+//					+ (int) playerFootY / GameController.getScale() / 16);
+//
+//
+//			double targetMineBlockX = 0;
+//			double targetMineBlockY = 0;
+//			switch (player.getLastDirection()) {
+//			case "up":
+//				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16);
+//				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16) - 1;
+//				break;
+//			case "right":
+//				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16) + 1;
+//				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16);
+//				break;
+//			case "left":
+//				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16) - 1;
+//				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16);
+//				break;
+//			case "down":
+//				targetMineBlockX = ((playerFootX) / GameController.getScale() / 16);
+//				targetMineBlockY = ((playerFootY) / GameController.getScale() / 16) + 1;
+//			default:
+//
+//				break;
+//			}
+//			if (targetMineBlockX != 0 && targetMineBlockY != 0) {
+//				Iterator<Block> iterator = blocks.iterator();
+//				while (iterator.hasNext()) {
+//					Block block = iterator.next();
+//
+//					int blockCenX = (int) ((block.getLayoutX() + (8 * GameController.getScale()))
+//							/ GameController.getScale() / 16);
+//					int blockCenY = (int) ((block.getLayoutY() + (8 * GameController.getScale()))
+//							/ GameController.getScale() / 16);
+//
+//					if (blockCenX == (int) targetMineBlockX && blockCenY == (int) targetMineBlockY) {
+//						int damage = 1;
+//
+//						if (block instanceof Pickaxeable) {
+//							Ore ore = (Ore) block;
+//							if (ore.isBrokeFromBreak(damage)) {
+//								this.getChildren().remove(block);
+//								iterator.remove();
+//							}
+//						}
+//					}
+//				}
+//			}
 		}
 
 		else if (Player.getUsingItem().getRow() == 3 && Player.getUsingItem().getCol() == 4) {

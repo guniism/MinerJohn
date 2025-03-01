@@ -1,15 +1,20 @@
 package entities;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import game.GameController;
 import game.Item;
+import game.MainPane;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import ui.ContainerPane;
+import world.Block;
+import world.Ore;
+import world.Pickaxeable;
 
 public class Player extends Canvas {
     private final int WIDTH;
@@ -199,11 +204,13 @@ public class Player extends Canvas {
                     if (miningFrameCounter >= miningFrameDelay) {
                         miningFrameCounter = 0;
                         miningFrameIndex = (miningFrameIndex + 1) % miningTotalFrames;
-                        
+                        System.out.println(miningFrameIndex);
                         // If we've completed the animation cycle, stop mining
                         if (miningFrameIndex == 0) {
                             isMining = false;
                             setCanMove(true);
+//                          System.out.println("Animation Done");
+                            usePickaxe();
                         }
                     }
                 } else {
@@ -458,6 +465,79 @@ public class Player extends Canvas {
             miningFrameIndex = 0;
             miningFrameCounter = 0;
         }
+    }
+    public void usePickaxe() {
+    	System.out.println(getLastDirection());
+		double playerFootX = getX() + (8 + 24 - 8) * GameController.getScale();
+		double playerFootY = getY() + (32) * GameController.getScale();
+		System.out.println((int) playerFootX / GameController.getScale() / 16 + " "
+				+ (int) playerFootY / GameController.getScale() / 16);
+
+
+		double targetMineBlockX = 0;
+		double targetMineBlockY = 0;
+		switch (getLastDirection()) {
+		case "up":
+			targetMineBlockX = ((playerFootX) / GameController.getScale() / 16);
+			targetMineBlockY = ((playerFootY) / GameController.getScale() / 16) - 1;
+			break;
+		case "right":
+			targetMineBlockX = ((playerFootX) / GameController.getScale() / 16) + 1;
+			targetMineBlockY = ((playerFootY) / GameController.getScale() / 16);
+			break;
+		case "left":
+			targetMineBlockX = ((playerFootX) / GameController.getScale() / 16) - 1;
+			targetMineBlockY = ((playerFootY) / GameController.getScale() / 16);
+			break;
+		case "down":
+			targetMineBlockX = ((playerFootX) / GameController.getScale() / 16);
+			targetMineBlockY = ((playerFootY) / GameController.getScale() / 16) + 1;
+		default:
+
+			break;
+		}
+		if (targetMineBlockX != 0 && targetMineBlockY != 0) {
+			Iterator<Block> iterator = GameController.getGamePane().getBlocks().iterator();
+			while (iterator.hasNext()) {
+				Block block = iterator.next();
+
+				int blockCenX = (int) ((block.getLayoutX() + (8 * GameController.getScale()))
+						/ GameController.getScale() / 16);
+				int blockCenY = (int) ((block.getLayoutY() + (8 * GameController.getScale()))
+						/ GameController.getScale() / 16);
+
+				if (blockCenX == (int) targetMineBlockX && blockCenY == (int) targetMineBlockY) {
+					int damage = 1;
+
+					if (block instanceof Pickaxeable) {
+						Ore ore = (Ore) block;
+//						ore.setLayoutY(ore.getLayoutY() - 1);
+						new Thread(() -> {
+					        try {
+					            // Move ore up
+					        	 Platform.runLater(() -> {
+					                    ore.setLayoutY(ore.getLayoutY() - 2);  // Move up by 1 pixel
+					                });
+					                Thread.sleep(50);
+
+					                Platform.runLater(() -> {
+					                    ore.setLayoutY(ore.getLayoutY() + 2);  // Move down by 1 pixel
+					                });
+					                Thread.sleep(50);
+
+					        } catch (InterruptedException e) {
+					            e.printStackTrace();
+					        }
+					    }).start();
+//						ore.setLayoutY(ore.getLayoutY() + 1);
+						if (ore.isBrokeFromBreak(damage)) {
+							GameController.getGamePane().getChildren().remove(block);
+							iterator.remove();
+						}
+					}
+				}
+			}
+		}
     }
     
     public void setMovingDown(boolean movingDown) {
