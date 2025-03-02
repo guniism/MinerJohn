@@ -10,7 +10,7 @@ public class Map extends Canvas {
 	private Image backgroundImage;
 	
 	public Map() {
-		String path = ClassLoader.getSystemResource("map2.png").toString();
+		String path = ClassLoader.getSystemResource("map1.png").toString();
         this.backgroundImage = new Image(path);
 
         this.setWidth(backgroundImage.getWidth() * GameController.getScale());
