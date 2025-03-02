@@ -14,8 +14,8 @@ public abstract class Block extends Canvas {
         String path = ClassLoader.getSystemResource(imagePath).toString();
         this.spriteSheet = new Image(path);
 
-        this.setWidth(16 * GameController.getScale());
-        this.setHeight(16 * GameController.getScale());
+        this.setWidth(SIZE * GameController.getScale());
+        this.setHeight(SIZE * GameController.getScale());
 //
         GraphicsContext gc = this.getGraphicsContext2D();
         gc.setImageSmoothing(false);
