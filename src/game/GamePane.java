@@ -1,8 +1,8 @@
 package game;
 
-
 import entities.Slime;
 import entities.Zombie;
+import entities.FloatingItem;
 import entities.Player;
 import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
@@ -20,10 +20,12 @@ import ui.CloseButtonPane;
 import ui.HealthStamBar;
 import ui.InventoryButton;
 import world.Block;
+import world.Interactable;
 import world.Ladder;
 import world.Map;
 import world.Ore;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -40,6 +42,7 @@ public class GamePane extends Pane {
 	private int[][] mapBlock;
 //	private Block[][] blockArray;
 	private List<Block> blocks = new ArrayList<>(); // Store all rocks
+	private List<FloatingItem> floatingItems = new ArrayList<>();
 	private Rectangle transitionScreen;
 //	private static final int ROCK_COUNT = 10; // Number of randomly placed rocks
 	private int SLIME_COUNT = 3, ZOMBIE_COUNT = 3;
@@ -60,7 +63,7 @@ public class GamePane extends Pane {
 
 		this.playerCenterAbsX = this.player.getX() + this.getLayoutX() - 16 * GameController.getScale();
 		this.playerCenterAbsY = this.player.getY() + this.getLayoutY() - 8 * GameController.getScale();
-		
+
 		transitionScreen = new Rectangle();
 		transitionScreen.setFill(Color.BLACK);
 		transitionScreen.setOpacity(0);
@@ -79,7 +82,7 @@ public class GamePane extends Pane {
 //		generateRandomZombies();
 		// Set up mouse click event handler
 
-		this.getChildren().add(this.player);
+		
 		setupMouseHandler();
 		startMovement();
 	}
@@ -141,9 +144,9 @@ public class GamePane extends Pane {
 				}
 			}
 		}
-		for (int i = 0; i < this.getChildren().size(); i++) {
-			System.out.println("Child " + i + ": " + this.getChildren().get(i));
-		}
+//		for (int i = 0; i < this.getChildren().size(); i++) {
+//			System.out.println("Child " + i + ": " + this.getChildren().get(i));
+//		}
 
 		for (int i = 0; i < mapBlock.length; i++) {
 			String tmp = "";
@@ -154,11 +157,11 @@ public class GamePane extends Pane {
 			}
 			System.out.println(tmp);
 		}
-		
+
 		// random number
 		int randomLadder = rand.nextInt(blocks.size());
 //		System.out.println(randomLadder);
-		
+
 		int TargetLadderX = (int) (blocks.get(randomLadder).getLayoutX() / GameController.getScale() / 16);
 		int TargetLadderY = (int) (blocks.get(randomLadder).getLayoutY() / GameController.getScale() / 16);
 //		System.out.println(blocks.get(randomLadder));
@@ -167,25 +170,25 @@ public class GamePane extends Pane {
 		this.ladderX = TargetLadderX;
 		this.ladderY = TargetLadderY;
 
+		this.getChildren().add(this.player);
 	}
-	
+
 	public void createLadder(int gridX, int gridY) {
-	    Ladder ladder = new Ladder();
+		Ladder ladder = new Ladder();
 
-	    // Set position
-	    double x = 16 * GameController.getScale() * gridX;
-	    double y = 16 * GameController.getScale() * gridY;
-	    ladder.setLayoutX(x);
-	    ladder.setLayoutY(y);
-	    
-	    // Debugging
-	    System.out.println("Ladder added to scene at: " + x + ", " + y);
+		// Set position
+		double x = 16 * GameController.getScale() * gridX;
+		double y = 16 * GameController.getScale() * gridY;
+		ladder.setLayoutX(x);
+		ladder.setLayoutY(y);
 
-	    // Add to scene
-	    this.getChildren().add(ladder);
-	    blocks.add(ladder);
+		// Debugging
+		System.out.println("Ladder added to scene at: " + x + ", " + y);
+
+		// Add to scene
+		this.getChildren().add(ladder);
+		blocks.add(ladder);
 	}
-
 
 	private void setupMouseHandler() {
 		// Add event handler for mouse clicks
@@ -193,9 +196,10 @@ public class GamePane extends Pane {
 	}
 
 	private void handleMouseClick(MouseEvent event) {
-//		if (checkLadderClick(event)) {
-//			return;
-//		}
+
+		if (interactBlockClick(event)) {
+			return;
+		}
 
 		if (Player.getUsingItem() == null) {
 			System.out.println("Do nothing");
@@ -216,63 +220,26 @@ public class GamePane extends Pane {
 		}
 	}
 
-//	private boolean isValidBlockLocation(double gridX, double gridY) {
-//		// Use grid coordinates so that blocks never share the same cell.
-//		// Check if any block is already at that grid coordinate.
-//		double tileSize = 16 * GameController.getScale();
-//		double candidateX = gridX * tileSize;
-//		double candidateY = gridY * tileSize;
-//		for (Block block : blocks) {
-//			// Compare positions (using a tolerance of 0 since blocks are placed on a grid)
-//			if (Math.abs(block.getLayoutX() - candidateX) < 0.1 && Math.abs(block.getLayoutY() - candidateY) < 0.1) {
-//				return false;
-//			}
-//		}
-//		return true;
-//	}
+	private boolean interactBlockClick(MouseEvent event) {
+		for (Block block : this.blocks) {
+			if (block instanceof Interactable) {
+				int mouseX = (int) (event.getX() / GameController.getScale() / 16);
+				int mouseY = (int) (event.getY() / GameController.getScale() / 16);
+				int x = (int) (block.getLayoutX() / GameController.getScale() / 16);
+				int y = (int) (block.getLayoutY() / GameController.getScale() / 16);
 
-//	private void generateRandomBlocks() {
-//		Random random = new Random();
-//		int ORE_TYPE_COUNT = 5; // Number of ore types
-//		double scale = GameController.getScale();
-//		double tileSize = 16 * scale;
-//
-//		// Calculate player's spawn grid coordinates (assuming player's spawn is where
-//		// the player is initially)
-//		int playerSpawnGridX = (int) (player.getX() / tileSize);
-//		int playerSpawnGridY = (int) (player.getY() / tileSize);
-//
-//		for (int i = 0; i < ROCK_COUNT; i++) {
-//			int gridX, gridY;
-//			int attempts = 0;
-//			do {
-//				gridX = random.nextInt(5, 25);
-//				gridY = random.nextInt(5, 10);
-//				attempts++;
-//				// Continue if:
-//				// 1. The grid is exactly the player's spawn cell.
-//				// 2. There is already a block at that grid.
-//			} while (((gridX == playerSpawnGridX && gridY == playerSpawnGridY) || !isValidBlockLocation(gridX, gridY))
-//					&& attempts < 100);
-//			// If after many attempts no valid cell is found, we simply skip.
-//			if (attempts >= 100)
-//				continue;
-//
-//			Block block;
-//			if (random.nextBoolean()) {
-//				block = new Ore(0);
-//			} else {
-//				int oreType = random.nextInt(ORE_TYPE_COUNT);
-//				block = new Ore(oreType + 1);
-//			}
-//			double blockX = tileSize * gridX;
-//			double blockY = tileSize * gridY;
-//			block.setLayoutX(blockX);
-//			block.setLayoutY(blockY);
-//			this.getChildren().add(block);
-//			blocks.add(block);
-//		}
-//	}
+//				System.out.println("X=" + mouseX + ", Y=" + mouseY);
+//				System.out.println("X=" + x + ", Y=" + y);
+
+				if (mouseX == x && mouseY == y) {
+					((Interactable) block).response();
+					return true;
+				}
+
+			}
+		}
+		return false;
+	}
 
 	private boolean isValidSpawnLocation(double x, double y) {
 		double scale = GameController.getScale();
@@ -367,32 +334,6 @@ public class GamePane extends Pane {
 		}
 	}
 
-//	private void generateRandomLadder() {
-//		Random random = new Random();
-//		double ladderX, ladderY;
-//		boolean isColliding;
-//
-//		// Keep generating positions until we find an empty spot
-//		do {
-//			int gridX = random.nextInt(5, 25);
-//			int gridY = random.nextInt(5, 10);
-//			ladderX = 16 * GameController.getScale() * gridX;
-//			ladderY = 16 * GameController.getScale() * gridY;
-//
-//			// Check if the ladder would collide with another block or the player
-//			isColliding = isBlockAt(ladderX, ladderY);
-//		} while (isColliding); // Repeat until an empty, non-colliding position is found
-//
-//		// Create and place the ladder
-//		Ladder ladder = new Ladder();
-//		ladder.setLayoutX(ladderX);
-//		ladder.setLayoutY(ladderY);
-//
-//		// Add ladder to the scene and store it in blocks (since Ladder extends Block)
-//		this.getChildren().add(ladder);
-//		blocks.add(ladder);
-//	}
-
 	private void startMovement() {
 		AnimationTimer timer = new AnimationTimer() {
 			@Override
@@ -403,7 +344,7 @@ public class GamePane extends Pane {
 		timer.start();
 	}
 
-	private void move() {
+	private void move() {		
 		double dx = 0, dy = 0;
 
 		boolean movingDown = false;
@@ -500,6 +441,49 @@ public class GamePane extends Pane {
 		this.player.setLayoutX(this.player.getX());
 		this.player.setLayoutY(this.player.getY());
 		adjustViewOrder();
+		
+		// Floating item
+//		for (FloatingItem item : floatingItems) {
+		Iterator<FloatingItem> iterator = floatingItems.iterator();
+		while (iterator.hasNext()) {
+		    FloatingItem item = iterator.next();
+			int playerFootGridX = (int) ((this.player.getX()
+					+ (8 + 24 - 8) * GameController.getScale()) / GameController.getScale() / 16);
+			int playerFootGridY = (int) ((this.player.getY()
+					+ (32) * GameController.getScale()) / GameController.getScale() / 16);
+			int itemCenGridX = (int) ((item.getLayoutX() + 8 * GameController.getScale()) / GameController.getScale() / 16);
+			int itemCenGridY = (int) ((item.getLayoutY() + 8 * GameController.getScale()) / GameController.getScale() / 16);
+			
+			if (Math.abs(playerFootGridX - itemCenGridX) <= 1 && Math.abs(playerFootGridY - itemCenGridY) <= 1) {
+//				System.out.println("start follow");
+				double itemX = (item.getLayoutX() + 8 * GameController.getScale());
+				double itemY = (item.getLayoutY() + 8 * GameController.getScale());
+				
+				double playerCenX = (this.player.getX() + (8 + 24 - 8) * GameController.getScale());
+				double playerCenY = (this.player.getY() + (32) * GameController.getScale());
+
+				double itemDx = playerCenX - itemX;
+				double itemDy = playerCenY - itemY;
+				double distance = Math.sqrt(itemDx * itemDx + itemDy * itemDy);
+
+				if (distance > 1) {
+				    double speed = 2;
+				    double moveX = (itemDx / distance) * speed;
+				    double moveY = (itemDy / distance) * speed;
+
+				    item.setLayoutX(item.getLayoutX() + moveX);
+				    item.setLayoutY(item.getLayoutY() + moveY);
+				}
+
+			}
+			if (playerFootGridX == itemCenGridX && playerFootGridY == itemCenGridY) {	
+//				System.err.println("item over u");
+				Player.addItem(new Item(item.getRow(), item.getCol()), Player.containerGrid);
+				this.getChildren().remove(item);
+				iterator.remove();
+				
+			}
+		}
 	}
 
 	private void adjustViewOrder() {
@@ -554,50 +538,6 @@ public class GamePane extends Pane {
 		return false; // No collision
 	}
 
-//	private boolean isBlockAt(double x, double y) {
-//		for (Block block : blocks) {
-//			if (block.getLayoutX() == x && block.getLayoutY() == y) {
-//				return true;
-//			}
-//		}
-//		return false;
-//	}
-
-//	private boolean checkLadderClick(MouseEvent event) {
-//		double scale = GameController.getScale();
-//		double range = 32 * scale; // Interaction range
-//
-//		// Get player's center coordinates
-//		double playerCenterX = player.getX() + player.getWidth() / 2;
-//		double playerCenterY = player.getY() + player.getHeight() / 2;
-//
-//		for (Block block : blocks) {
-//			if (block instanceof Ladder) {
-//				// Calculate ladder's center assuming the ladder's area is range by range
-//				double ladderCenterX = block.getLayoutX() + range / 2;
-//				double ladderCenterY = block.getLayoutY() + range / 2;
-//
-//				// Calculate distance between player and ladder
-//				double dx = playerCenterX - ladderCenterX;
-//				double dy = playerCenterY - ladderCenterY;
-//				double distance = Math.sqrt(dx * dx + dy * dy);
-//
-//				// If the player is within range, trigger the ladder action
-//				if (distance <= range) {
-//					// Disable mining and reset any mining attack flag
-//					player.setMining(false);
-//					player.setCanMove(false);
-//					GameController.getKeyboardController().setAttacking(false);
-//					enterNextFloor();
-//					MainPane.setFloorText((MainPane.getFloorNum() + 1) + "");
-//					MainPane.setFloorNum(MainPane.getFloorNum() + 1);
-//					return true;
-//				}
-//			}
-//		}
-//		return false;
-//	}
-
 	public void enterNextFloor() {
 		System.out.println("Entering next floor...");
 		updateOverlaySize();
@@ -618,8 +558,13 @@ public class GamePane extends Pane {
 			protected void interpolate(double frac) {
 				if (frac == 1.0) {
 					Platform.runLater(() -> {
+						getChildren().remove(getPlayer());
+						getChildren().removeAll(floatingItems);
 						getChildren().removeAll(blocks);
+
+						floatingItems.clear();
 						blocks.clear();
+
 						generateNextMap();
 
 						if (!getChildren().contains(player)) {
@@ -634,8 +579,8 @@ public class GamePane extends Pane {
 		fadeOut.setFromValue(1);
 		fadeOut.setToValue(0);
 		fadeOut.setOnFinished(event -> {
-		    transitionScreen.setVisible(false);
-		    player.setCanMove(true);
+			transitionScreen.setVisible(false);
+			player.setCanMove(true);
 		});
 
 		SequentialTransition transition = new SequentialTransition(fadeIn, pause, resetFloor, fadeOut);
@@ -695,6 +640,7 @@ public class GamePane extends Pane {
 				if (frac == 1.0) {
 					Platform.runLater(() -> {
 						// Remove all game objects
+						getChildren().remove(getPlayer());
 						getChildren().removeAll(blocks);
 						getChildren().removeAll(slimes);
 						getChildren().removeAll(zombies);
@@ -762,6 +708,10 @@ public class GamePane extends Pane {
 		return blocks;
 	}
 
+	public List<FloatingItem> getfloatingItems() {
+		return floatingItems;
+	}
+
 	public void setBlocks(List<Block> blocks) {
 		this.blocks = blocks;
 	}
@@ -785,6 +735,5 @@ public class GamePane extends Pane {
 	public Player getPlayer() {
 		return player;
 	}
-
 
 }
