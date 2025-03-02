@@ -523,7 +523,15 @@ public class Player extends Canvas {
 					    }).start();
 						if (ore.isBrokeFromBreak(damage)) {
 							GameController.getGamePane().getChildren().remove(block);
+							GameController.getGamePane().getMapBlock()[(int) targetMineBlockY][(int) targetMineBlockX] = 0;
 							iterator.remove();
+							if((int) targetMineBlockX == GameController.getGamePane().getLadderX() && (int) targetMineBlockY == GameController.getGamePane().getLadderY()) {
+								GameController.getGamePane().createLadder((int) targetMineBlockX, (int) targetMineBlockY);
+								System.out.println("Ladder created");
+								return;
+							}
+
+							
 						}
 					}
 				}
