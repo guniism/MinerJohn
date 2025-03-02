@@ -22,6 +22,7 @@ import ui.InventoryButton;
 import world.Block;
 import world.Interactable;
 import world.Ladder;
+import world.LadderUp;
 import world.Map;
 import world.Ore;
 import java.util.ArrayList;
@@ -104,6 +105,12 @@ public class GamePane extends Pane {
 		this.player.setLayoutX(this.player.getX());
 		this.player.setLayoutY(this.player.getY());
 		this.mapBlock[playerSpawnY][playerSpawnX] = -2;
+		
+		LadderUp ladderUp = new LadderUp();
+		ladderUp.setLayoutX(this.player.getX() + 16 * GameController.getScale());
+		ladderUp.setLayoutY(this.player.getY());
+		this.getChildren().add(ladderUp);
+		blocks.add(ladderUp);
 
 		for (int i = 0; i < mapBlock.length; i++) {
 			for (int j = 0; j < mapBlock[0].length; j++) {
