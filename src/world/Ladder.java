@@ -8,7 +8,7 @@ public class Ladder extends Block implements Interactable {
 	private boolean isClicked;
 
 	public Ladder() {
-		super("block.png");
+		super("block-sprite.png");
 		this.isClicked = false;
 //		this.setOnMouseClicked(event -> response());
 		render(this.getGraphicsContext2D());
