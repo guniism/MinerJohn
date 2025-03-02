@@ -25,6 +25,8 @@ import world.Ladder;
 import world.LadderUp;
 import world.Map;
 import world.Ore;
+import world.Pickaxeable;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -89,12 +91,27 @@ public class GamePane extends Pane {
 	}
 
 	private void generateNextMap() {
+		Random rand = new Random();
+		
+//		System.out.println(MainPane.getFloorNum());
+//		if(MainPane.getFloorNum() >= 1) {
+//			this.gameMap.setMap(3);
+//		}
+//		else if(MainPane.getFloorNum() >= 10) {
+//			this.gameMap.setMap(2);
+//		}
+//		else {
+//			this.gameMap.setMap(1);
+//		}
+
+		this.gameMap.setMap(rand.nextInt(3) + 1);
+		
 		int arraySizeH = (int) (this.gameMap.getHeight() / GameController.getScale()) / 16;
 		int arraySizeW = (int) (this.gameMap.getWidth() / GameController.getScale()) / 16;
 		this.mapBlock = new int[arraySizeH][arraySizeW];
 //		this.blockArray = new Block[arraySizeH][arraySizeW];
 
-		Random rand = new Random();
+		
 
 		// Random player start position
 		int playerSpawnX = rand.nextInt((mapBlock[0].length - 3 - 1) - 3 + 1) + 3;
@@ -133,12 +150,12 @@ public class GamePane extends Pane {
 					} else if (randomValue < p1 + p2) {
 						this.mapBlock[i][j] = 1;
 					} else if (randomValue < p1 + p2 + p3) {
-						this.mapBlock[i][j] = 1;
-					} else if (randomValue < p1 + p2 + p3 + p4) {
 						this.mapBlock[i][j] = 2;
+					} else if (randomValue < p1 + p2 + p3 + p4) {
+						this.mapBlock[i][j] = 3;
 
 					} else {
-						this.mapBlock[i][j] = 3;
+						this.mapBlock[i][j] = 4;
 					}
 					Ore block = new Ore(this.mapBlock[i][j]);
 					block.setLayoutX(16 * GameController.getScale() * j);
@@ -168,7 +185,9 @@ public class GamePane extends Pane {
 		// random number
 		int randomLadder = rand.nextInt(blocks.size());
 //		System.out.println(randomLadder);
-
+		while(!(blocks.get(randomLadder) instanceof Pickaxeable)) {
+			randomLadder = rand.nextInt(blocks.size());
+		}
 		int TargetLadderX = (int) (blocks.get(randomLadder).getLayoutX() / GameController.getScale() / 16);
 		int TargetLadderY = (int) (blocks.get(randomLadder).getLayoutY() / GameController.getScale() / 16);
 //		System.out.println(blocks.get(randomLadder));
