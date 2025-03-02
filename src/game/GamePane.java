@@ -207,13 +207,13 @@ public class GamePane extends Pane {
 		}
 
 		// Only execute mining if ladder wasn’t clicked
-		if (Player.getUsingItem().getRow() == 2 && Player.getUsingItem().getCol() == 0 && !player.isMining()) {
+		if (Player.getUsingItem().getRow() == 0 && Player.getUsingItem().getCol() == 0 && !player.isMining()) {
 			System.out.println("player is Mining");
 			player.setMining(true);
 			player.mine();
 		}
 
-		else if (Player.getUsingItem().getRow() == 3 && Player.getUsingItem().getCol() == 4) {
+		else if (Player.getUsingItem().getRow() == 1 && Player.getUsingItem().getCol() == 4) {
 			System.out.println("player is Attacking");
 			player.setAttacking(true);
 			player.attack();
