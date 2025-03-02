@@ -63,8 +63,7 @@ public class MainPane extends Pane {
         barS.setLayoutY(65);
         this.getChildren().addAll(barH, barS);
         
-//        Player.addItem(new Item(0, 0), Player.containerGrid);
-        
+//        Player.addItem(new Item(0, 0), Player.containerGrid);       
         Player.addItem(ItemRegistry.getItemById("Sword"), Player.containerGrid);
         Player.addItem(ItemRegistry.getItemById("Pickaxe"), Player.containerGrid);
     }
