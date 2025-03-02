@@ -64,8 +64,9 @@ public class MainPane extends Pane {
         this.getChildren().addAll(barH, barS);
         
 //        Player.addItem(new Item(0, 0), Player.containerGrid);
-        Player.addItem(ItemRegistry.getItemById("Pickaxe"), Player.containerGrid);
+        
         Player.addItem(ItemRegistry.getItemById("Sword"), Player.containerGrid);
+        Player.addItem(ItemRegistry.getItemById("Pickaxe"), Player.containerGrid);
     }
     
     private void createFloorBanner() {
