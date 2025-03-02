@@ -7,7 +7,6 @@ public class LadderUp extends Block implements Interactable{
 
 	public LadderUp() {
 		super("block-sprite.png");
-//		this.setOnMouseClicked(event -> response());
 		
 		this.setHeight(48 * GameController.getScale());
 		render(this.getGraphicsContext2D());
