@@ -11,18 +11,17 @@ public class Ore extends Block implements Pickaxeable{
 	private int itemCol;
 	private int itemRow;
 	static {
-		ORE_MAP.put(0, new int[] { 0, 0, 3, 2}); // Rock
-		ORE_MAP.put(1, new int[] { 1, 0, 3, 2}); // SmoothStone
-		ORE_MAP.put(2, new int[] { 2, 0, 4, 2});; // Copper
-		ORE_MAP.put(3, new int[] { 3, 0, 0, 3}); // Iron
-		ORE_MAP.put(4, new int[] { 4, 0, 2, 3});; // Gold
-		ORE_MAP.put(5, new int[] { 5, 0, 4, 3}); // Diamond
+		ORE_MAP.put(0, new int[] { 0, 0, 3, 2, 2}); // Rock
+		ORE_MAP.put(1, new int[] { 1, 0, 3, 2, 2}); // SmoothStone
+		ORE_MAP.put(2, new int[] { 2, 0, 4, 2, 3});; // Copper
+		ORE_MAP.put(3, new int[] { 3, 0, 0, 3, 5}); // Iron
+		ORE_MAP.put(4, new int[] { 4, 0, 2, 3, 7});; // Gold
+		ORE_MAP.put(5, new int[] { 5, 0, 4, 3, 10}); // Diamond
 	}
 
 
 	public Ore(int oreId) {
 	    super("block-sprite.png");
-	    this.health = 2;
 	    
 	    if (ORE_MAP.containsKey(oreId)) {
 	    	this.oreId = oreId;
@@ -30,11 +29,13 @@ public class Ore extends Block implements Pickaxeable{
 	        this.tileRow = ORE_MAP.get(oreId)[1];
 	        this.itemCol = ORE_MAP.get(oreId)[2];
 	        this.itemRow = ORE_MAP.get(oreId)[3];
+	        this.health = ORE_MAP.get(oreId)[4];
 	    } else {
-	        this.tileCol = 1; 
-	        this.tileRow = 0;
-	        this.itemCol = 3;
-	        this.itemRow = 4;
+	    	this.tileCol = ORE_MAP.get(0)[0];
+	        this.tileRow = ORE_MAP.get(0)[1];
+	        this.itemCol = ORE_MAP.get(0)[2];
+	        this.itemRow = ORE_MAP.get(0)[3];
+	        this.health = ORE_MAP.get(0)[4];
 	    }
 
 	    GraphicsContext gc = this.getGraphicsContext2D();
