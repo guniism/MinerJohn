@@ -95,7 +95,7 @@ public class Player extends Canvas {
         String attackingPath = ClassLoader.getSystemResource("boy-attack.png").toString();
         attackingSpriteSheet = new Image(attackingPath);
         
-        String deadPath = ClassLoader.getSystemResource("boy-attack.png").toString();
+        String deadPath = ClassLoader.getSystemResource("boy-dead.png").toString();
         deathSpriteSheet = new Image(deadPath); // Load death animation
         
         // Set canvas to the largest of the animations to accommodate all
@@ -522,15 +522,23 @@ public class Player extends Canvas {
 					        }
 					    }).start();
 						if (ore.isBrokeFromBreak(damage)) {
+							FloatingItem dropItem = new FloatingItem(ore.getItemRow(), ore.getItemCol(),(int) targetMineBlockX, (int) targetMineBlockY);
+							iterator.remove();
+							GameController.getGamePane().getChildren().remove(this);
+							if((int) targetMineBlockX == GameController.getGamePane().getLadderX() && (int) targetMineBlockY == GameController.getGamePane().getLadderY()) {
+								
+								GameController.getGamePane().createLadder((int) targetMineBlockX, (int) targetMineBlockY);
+								System.out.println("Ladder created");		
+								
+								
+							}
+							GameController.getGamePane().getChildren().add(dropItem);
+							GameController.getGamePane().getfloatingItems().add(dropItem);
 							GameController.getGamePane().getChildren().remove(block);
 							GameController.getGamePane().getMapBlock()[(int) targetMineBlockY][(int) targetMineBlockX] = 0;
-							iterator.remove();
-							if((int) targetMineBlockX == GameController.getGamePane().getLadderX() && (int) targetMineBlockY == GameController.getGamePane().getLadderY()) {
-								GameController.getGamePane().createLadder((int) targetMineBlockX, (int) targetMineBlockY);
-								System.out.println("Ladder created");
-								return;
-							}
-
+							
+							GameController.getGamePane().getChildren().add(this);
+							return;
 							
 						}
 					}
