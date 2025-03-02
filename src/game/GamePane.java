@@ -85,14 +85,13 @@ public class GamePane extends Pane {
 //		generateRandomZombies();
 		// Set up mouse click event handler
 
-		
 		setupMouseHandler();
 		startMovement();
 	}
 
 	private void generateNextMap() {
 		Random rand = new Random();
-		
+
 //		System.out.println(MainPane.getFloorNum());
 //		if(MainPane.getFloorNum() >= 1) {
 //			this.gameMap.setMap(3);
@@ -103,15 +102,12 @@ public class GamePane extends Pane {
 //		else {
 //			this.gameMap.setMap(1);
 //		}
-
 		this.gameMap.setMap(rand.nextInt(3) + 1);
-		
+
 		int arraySizeH = (int) (this.gameMap.getHeight() / GameController.getScale()) / 16;
 		int arraySizeW = (int) (this.gameMap.getWidth() / GameController.getScale()) / 16;
 		this.mapBlock = new int[arraySizeH][arraySizeW];
 //		this.blockArray = new Block[arraySizeH][arraySizeW];
-
-		
 
 		// Random player start position
 		int playerSpawnX = rand.nextInt((mapBlock[0].length - 3 - 1) - 3 + 1) + 3;
@@ -122,7 +118,7 @@ public class GamePane extends Pane {
 		this.player.setLayoutX(this.player.getX());
 		this.player.setLayoutY(this.player.getY());
 		this.mapBlock[playerSpawnY][playerSpawnX] = -2;
-		
+
 		LadderUp ladderUp = new LadderUp();
 		ladderUp.setLayoutX(this.player.getX() + 16 * GameController.getScale());
 		ladderUp.setLayoutY(this.player.getY());
@@ -157,12 +153,17 @@ public class GamePane extends Pane {
 					} else {
 						this.mapBlock[i][j] = 4;
 					}
+
 					Ore block = new Ore(this.mapBlock[i][j]);
+					if (this.mapBlock[i][j] == 1) {
+						block = new Ore(rand.nextInt(2));
+					}
 					block.setLayoutX(16 * GameController.getScale() * j);
 					block.setLayoutY(16 * GameController.getScale() * i);
 					this.getChildren().add(block);
 //					this.blockArray[i][j] = block;
 					blocks.add(block);
+					
 				} else {
 					this.mapBlock[i][j] = -1;
 				}
@@ -185,7 +186,7 @@ public class GamePane extends Pane {
 		// random number
 		int randomLadder = rand.nextInt(blocks.size());
 //		System.out.println(randomLadder);
-		while(!(blocks.get(randomLadder) instanceof Pickaxeable)) {
+		while (!(blocks.get(randomLadder) instanceof Pickaxeable)) {
 			randomLadder = rand.nextInt(blocks.size());
 		}
 		int TargetLadderX = (int) (blocks.get(randomLadder).getLayoutX() / GameController.getScale() / 16);
@@ -370,7 +371,7 @@ public class GamePane extends Pane {
 		timer.start();
 	}
 
-	private void move() {		
+	private void move() {
 		double dx = 0, dy = 0;
 
 		boolean movingDown = false;
@@ -392,7 +393,15 @@ public class GamePane extends Pane {
 					closeButton = new CloseButtonPane(mother, bag, inv);
 					closeButton.setLayoutX(760);
 					closeButton.setLayoutY(60);
-					mother.getChildren().addAll(inv, bag, closeButton);
+					
+					// ponG บอกมา		
+					if (!mother.getChildren().contains(bag)) { 
+						mother.getChildren().add(bag);
+					} else {
+					    System.out.println("Bag is already added!");
+					}
+					
+					mother.getChildren().addAll(inv, closeButton);
 					pass = false;
 				});
 			});
@@ -467,24 +476,26 @@ public class GamePane extends Pane {
 		this.player.setLayoutX(this.player.getX());
 		this.player.setLayoutY(this.player.getY());
 		adjustViewOrder();
-		
+
 		// Floating item
 //		for (FloatingItem item : floatingItems) {
 		Iterator<FloatingItem> iterator = floatingItems.iterator();
 		while (iterator.hasNext()) {
-		    FloatingItem item = iterator.next();
-			int playerFootGridX = (int) ((this.player.getX()
-					+ (8 + 24 - 8) * GameController.getScale()) / GameController.getScale() / 16);
-			int playerFootGridY = (int) ((this.player.getY()
-					+ (32) * GameController.getScale()) / GameController.getScale() / 16);
-			int itemCenGridX = (int) ((item.getLayoutX() + 8 * GameController.getScale()) / GameController.getScale() / 16);
-			int itemCenGridY = (int) ((item.getLayoutY() + 8 * GameController.getScale()) / GameController.getScale() / 16);
-			
+			FloatingItem item = iterator.next();
+			int playerFootGridX = (int) ((this.player.getX() + (8 + 24 - 8) * GameController.getScale())
+					/ GameController.getScale() / 16);
+			int playerFootGridY = (int) ((this.player.getY() + (32) * GameController.getScale())
+					/ GameController.getScale() / 16);
+			int itemCenGridX = (int) ((item.getLayoutX() + 8 * GameController.getScale()) / GameController.getScale()
+					/ 16);
+			int itemCenGridY = (int) ((item.getLayoutY() + 8 * GameController.getScale()) / GameController.getScale()
+					/ 16);
+
 			if (Math.abs(playerFootGridX - itemCenGridX) <= 1 && Math.abs(playerFootGridY - itemCenGridY) <= 1) {
 //				System.out.println("start follow");
 				double itemX = (item.getLayoutX() + 8 * GameController.getScale());
 				double itemY = (item.getLayoutY() + 8 * GameController.getScale());
-				
+
 				double playerCenX = (this.player.getX() + (8 + 24 - 8) * GameController.getScale());
 				double playerCenY = (this.player.getY() + (32) * GameController.getScale());
 
@@ -493,21 +504,21 @@ public class GamePane extends Pane {
 				double distance = Math.sqrt(itemDx * itemDx + itemDy * itemDy);
 
 				if (distance > 1) {
-				    double speed = 2;
-				    double moveX = (itemDx / distance) * speed;
-				    double moveY = (itemDy / distance) * speed;
+					double speed = 2;
+					double moveX = (itemDx / distance) * speed;
+					double moveY = (itemDy / distance) * speed;
 
-				    item.setLayoutX(item.getLayoutX() + moveX);
-				    item.setLayoutY(item.getLayoutY() + moveY);
+					item.setLayoutX(item.getLayoutX() + moveX);
+					item.setLayoutY(item.getLayoutY() + moveY);
 				}
 
 			}
-			if (playerFootGridX == itemCenGridX && playerFootGridY == itemCenGridY) {	
+			if (playerFootGridX == itemCenGridX && playerFootGridY == itemCenGridY) {
 //				System.err.println("item over u");
 				Player.addItem(new Item(item.getRow(), item.getCol()), Player.containerGrid);
 				this.getChildren().remove(item);
 				iterator.remove();
-				
+
 			}
 		}
 	}
