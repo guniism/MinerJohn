@@ -22,5 +22,24 @@ public class Map extends Canvas {
         gc.drawImage(backgroundImage, 0, 0, backgroundImage.getWidth(), backgroundImage.getHeight());
  
 	}
+	
+	public void setMap(int num) {
+		if(num < 1) {
+			num = 1;
+		}
+		else if(num > 3) {
+			num = 3;
+		}
+		String path = ClassLoader.getSystemResource("map" + num + ".png").toString();
+        this.backgroundImage = new Image(path);
+		
+		this.setWidth(backgroundImage.getWidth() * GameController.getScale());
+        this.setHeight(backgroundImage.getHeight() * GameController.getScale());
+        
+
+        GraphicsContext gc = this.getGraphicsContext2D();
+        gc.clearRect(0, 0, this.getWidth(), this.getHeight());
+        gc.drawImage(backgroundImage, 0, 0, backgroundImage.getWidth(), backgroundImage.getHeight());
+	}
 
 }
