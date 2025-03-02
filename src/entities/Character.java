@@ -1,9 +1,6 @@
 package entities;
 
-import game.GameController;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
 
 public abstract class Character extends Canvas {
     protected double x;
