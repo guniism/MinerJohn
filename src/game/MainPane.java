@@ -5,13 +5,17 @@ import java.util.List;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import ui.*;
+import utils.SpriteSheet;
 import entities.Player;
 
 public class MainPane extends Pane {
-    private static Text floorText;
+//    private static Text floorText;
     private static int FloorNum;
+    private static PixelText floorText;
     private GamePane gamePane; // Store the GamePane here
     private HealthStamBar hBar,sBar;
+    static SpriteSheet banner;
+    
     public MainPane() {
         // Create and store the GamePane
         gamePane = new GamePane(this);
@@ -34,24 +38,21 @@ public class MainPane extends Pane {
         this.getChildren().addAll(hBar, sBar);
         
         BagIcon bagIcon = new BagIcon();
-        Floor floor = new Floor();
+
         Icon icon = new Icon();
         
         bagIcon.setLayoutX(995);
         bagIcon.setLayoutY(635);
         
-        floor.setLayoutX(985);
-        floor.setLayoutY(20);
+
         FloorNum = 1;
-        floorText = new Text("1");
-        floorText.setLayoutX(floor.getLayoutX() + 33);
-        floorText.setLayoutY(floor.getLayoutY() + 35);
-        floorText.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: black;");
+        createFloorBanner();
         
         icon.setLayoutX(15);
         icon.setLayoutY(20);
         
-        this.getChildren().addAll(bagIcon, floor, icon, floorText);
+        this.getChildren().addAll(bagIcon, icon);
+        
         
         Bar barH = new Bar();
         barH.setLayoutX(100);
@@ -67,14 +68,28 @@ public class MainPane extends Pane {
         Player.addItem(ItemRegistry.getItemById("Sword"), Player.containerGrid);
     }
     
+    private void createFloorBanner() {
+    	Pane floorBanner = new Pane();
+        banner = new SpriteSheet("stat-ui-sprite.png", 16, 11, 33, 0, 1);
+
+    	floorText = new PixelText("1");
+    	floorText.setText("1");
+    	
+    	floorText.setLayoutX((banner.getWidth() / 2) - floorText.getWidth() / 2);
+    	floorText.setLayoutY((banner.getHeight() / 2) - floorText.getHeight() / 2);
+    	floorBanner.setLayoutX(985);
+    	floorBanner.setLayoutY(20);
+    	floorBanner.getChildren().add(banner);
+    	floorBanner.getChildren().add(floorText);
+   
+    	this.getChildren().add(floorBanner);
+    }
+    
     // Getter method to retrieve the stored GamePane
     public GamePane getGamePane() {
         return gamePane;
     }
     
-    public static void setFloorText(String newText) {
-        floorText.setText(newText);
-    }
 
 	public static int getFloorNum() {
 		return FloorNum;
@@ -82,6 +97,9 @@ public class MainPane extends Pane {
 
 	public static void setFloorNum(int floorNum) {
 		FloorNum = floorNum;
+		floorText.setText(floorNum + "");
+		floorText.setLayoutX((banner.getWidth() / 2) - floorText.getWidth() / 2);
+    	floorText.setLayoutY((banner.getHeight() / 2) - floorText.getHeight() / 2);
 	}
 
 	public HealthStamBar gethBar() {

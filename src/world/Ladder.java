@@ -50,7 +50,6 @@ public class Ladder extends Block implements Interactable {
 				GameController.getGamePane().getPlayer().setCanMove(false);
 				GameController.getKeyboardController().setAttacking(false);
 				GameController.getGamePane().enterNextFloor();
-				MainPane.setFloorText((MainPane.getFloorNum() + 1) + "");
 				MainPane.setFloorNum(MainPane.getFloorNum() + 1);
 				this.isClicked = true;
 			}

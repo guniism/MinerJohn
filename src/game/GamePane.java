@@ -77,7 +77,6 @@ public class GamePane extends Pane {
 
 //		generateRandomSlimes();
 //		generateRandomZombies();
-		
 		// Set up mouse click event handler
 
 		this.getChildren().add(this.player);
@@ -434,7 +433,8 @@ public class GamePane extends Pane {
 		} else if (!GameController.getKeyboardController().isBag() && !pass) {
 			Platform.runLater(() -> {
 				mother.getChildren().removeAll(inv, bag, closeButton);
-				MainPane.setFloorText("1");
+//				MainPane.setFloorText("1");
+//				MainPane.setFloorNum(1);
 				bag = null;
 				inv = null;
 				closeButton = null;
