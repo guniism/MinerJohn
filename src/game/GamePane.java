@@ -42,7 +42,7 @@ public class GamePane extends Pane {
 	private Bag bag;
 	private CloseButtonPane closeButton;
 	private static boolean pass = true;
-	private int[][] mapBlock;
+	private int[][] mapBlock, mapMonster;
 //	private Block[][] blockArray;
 	private List<Block> blocks = new ArrayList<>(); // Store all rocks
 	private List<FloatingItem> floatingItems = new ArrayList<>();
@@ -75,15 +75,6 @@ public class GamePane extends Pane {
 		this.getChildren().add(transitionScreen);
 
 		generateNextMap();
-
-		// Generate random rocks
-//		generateRandomBlocks();
-		// Generate random ladder
-//		generateRandomLadder();
-
-//		generateRandomSlimes();
-//		generateRandomZombies();
-		// Set up mouse click event handler
 
 		setupMouseHandler();
 		startMovement();
@@ -163,15 +154,12 @@ public class GamePane extends Pane {
 					this.getChildren().add(block);
 //					this.blockArray[i][j] = block;
 					blocks.add(block);
-					
+
 				} else {
 					this.mapBlock[i][j] = -1;
 				}
 			}
 		}
-//		for (int i = 0; i < this.getChildren().size(); i++) {
-//			System.out.println("Child " + i + ": " + this.getChildren().get(i));
-//		}
 
 		for (int i = 0; i < mapBlock.length; i++) {
 			String tmp = "";
@@ -198,6 +186,8 @@ public class GamePane extends Pane {
 		this.ladderY = TargetLadderY;
 
 		this.getChildren().add(this.player);
+		mapMonster = mapBlock;
+		generateRandomSlimes();
 	}
 
 	public void createLadder(int gridX, int gridY) {
@@ -268,77 +258,40 @@ public class GamePane extends Pane {
 		return false;
 	}
 
-	private boolean isValidSpawnLocation(double x, double y) {
-		double scale = GameController.getScale();
-		double safeDistance = 20 * scale; // minimum distance from player's spawn
-		// Assume player's spawn is at player's initial coordinates:
-		double playerSpawnX = player.getX() + 16 * GameController.getScale();
-		double playerSpawnY = player.getY() + 16 * GameController.getScale();
-		// Check that the candidate spawn is at least safeDistance away from player
-		// spawn.
-		double dx = x - playerSpawnX;
-		double dy = y - playerSpawnY;
-		if (Math.sqrt(dx * dx + dy * dy) < safeDistance) {
-			return false;
-		}
-
-		// Check if the candidate location is too close to any block.
-		double candidateSize = 16 * scale; // using tile size for blocks
-		for (Block block : blocks) {
-			// Here we check if the candidate location overlaps with the block.
-			// We can consider a simple rectangular overlap check.
-			double blockX = block.getLayoutX();
-			double blockY = block.getLayoutY();
-			if (x < blockX + candidateSize && x + candidateSize > blockX && y < blockY + candidateSize
-					&& y + candidateSize > blockY) {
-				return false;
-			}
-		}
-
-		// Also ensure that it does not overlap the player.
-		if (Math.abs(x - player.getLayoutX()) < 32 && Math.abs(y - player.getLayoutY()) < 32) {
-			return false;
-		}
-
-		// And check monsters do not overlap with each other.
-		for (Slime slime : slimes) {
-			if (Math.abs(x - slime.getLayoutX()) < 16 && Math.abs(y - slime.getLayoutY()) < 16) {
-				return false;
-			}
-		}
-		for (Zombie zombie : zombies) {
-			if (Math.abs(x - zombie.getLayoutX()) < 64 && Math.abs(y - zombie.getLayoutY()) < 32) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	private void generateRandomSlimes() {
 		Random random = new Random();
-		int attempts;
 		for (int i = 0; i < SLIME_COUNT; i++) {
-			double slimeX = 0, slimeY = 0;
-			boolean isValidSpawn = false;
-			attempts = 0;
-			while (!isValidSpawn && attempts < 50) {
-				int gridX = random.nextInt(5, 25);
-				int gridY = random.nextInt(5, 10);
-				slimeX = 16 * GameController.getScale() * gridX;
-				slimeY = 16 * GameController.getScale() * gridY;
-				isValidSpawn = isValidSpawnLocation(slimeX, slimeY);
-				attempts++;
-			}
-			if (isValidSpawn) {
-				Slime slime = new Slime(slimeX, slimeY, 10, 2, 1, player);
-				slimes.add(slime);
-				this.getChildren().add(slime);
-			}
+		    int slimeY, slimeX;
+
+		    do {
+		        slimeY = random.nextInt(5, mapMonster.length - 4);
+		        slimeX = random.nextInt(5, mapMonster[0].length - 4);
+		    } while (!canSpawnAt(slimeX, slimeY, mapMonster));
+
+		    slimeY *= GameController.getScale() * 16;
+		    slimeX *= GameController.getScale() * 16;
+		    
+		    Slime slime = new Slime(slimeX, slimeY, 2, 1, 1, player);
+		    slimes.add(slime);
+		    this.getChildren().add(slime);
 		}
 	}
+	
+	private boolean canSpawnAt(int x, int y, int[][] map) {
+	    // Check 3x3 surrounding area
+	    for (int i = -1; i <= 1; i++) {
+	        for (int j = -1; j <= 1; j++) {
+	            int checkY = y + i;
+	            int checkX = x + j;
+	            if (checkY < 0 || checkY >= map.length || checkX < 0 || checkX >= map[0].length || map[checkY][checkX] != 0) {
+	                return false; // Not a valid spawn location
+	            }
+	        }
+	    }
+	    return true;
+	}
 
-	private void generateRandomZombies() {
+	/*private void generateRandomZombies() {
 		Random random = new Random();
 		int attempts;
 		for (int i = 0; i < ZOMBIE_COUNT; i++) {
@@ -359,7 +312,7 @@ public class GamePane extends Pane {
 				this.getChildren().add(zombie);
 			}
 		}
-	}
+	}*/
 
 	private void startMovement() {
 		AnimationTimer timer = new AnimationTimer() {
@@ -393,14 +346,14 @@ public class GamePane extends Pane {
 					closeButton = new CloseButtonPane(mother, bag, inv);
 					closeButton.setLayoutX(760);
 					closeButton.setLayoutY(60);
-					
-					// ponG บอกมา		
-					if (!mother.getChildren().contains(bag)) { 
+
+					// ponG บอกมา
+					if (!mother.getChildren().contains(bag)) {
 						mother.getChildren().add(bag);
 					} else {
-					    System.out.println("Bag is already added!");
+						System.out.println("Bag is already added!");
 					}
-					
+
 					mother.getChildren().addAll(inv, closeButton);
 					pass = false;
 				});
@@ -689,8 +642,8 @@ public class GamePane extends Pane {
 						// Regenerate world
 //						generateRandomBlocks();
 //						generateRandomLadder();
-						generateRandomSlimes();
-						generateRandomZombies();
+						//generateRandomSlimes();
+						//generateRandomZombies();
 
 						// Reset player stats
 						player.setX(1080 / 2 - player.getWidth() / 2 - 16 * GameController.getScale());

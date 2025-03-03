@@ -197,6 +197,7 @@ public class Player extends Canvas {
                         if (attackingFrameIndex == 0) {
                             isAttacking = false;
                             setCanMove(true);
+                            useSword();
                         }
                     }
                 } else if (isMining) {
@@ -545,6 +546,10 @@ public class Player extends Canvas {
 				}
 			}
 		}
+    }
+    
+    public void useSword() {
+    	
     }
     
     public void setMovingDown(boolean movingDown) {

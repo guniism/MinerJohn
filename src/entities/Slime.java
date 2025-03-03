@@ -179,6 +179,8 @@ public class Slime extends Monster {
     }
 
     private void checkCollisionWithPlayer() {
+        if (!jumping) return; // Only hit player when jumping
+
         double playerX = player.getLayoutX();
         double playerY = player.getLayoutY();
         double playerWidth = player.getWidth();
@@ -194,12 +196,12 @@ public class Slime extends Monster {
 
         if (isColliding && canDamage) {
             System.out.println("Slime hit the player!");
-            GameController.getGamePane().reducePlayerHealth(1); // Reduce health by 1
+            GameController.getGamePane().reducePlayerHealth(1);
 
-            canDamage = false; // Prevent instant repeated damage
+            canDamage = false;
             new Thread(() -> { 
                 try {
-                    Thread.sleep(2000); // 1-second cooldown before it can damage again
+                    Thread.sleep(2000);
                     canDamage = true;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
