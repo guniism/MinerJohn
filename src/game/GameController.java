@@ -34,6 +34,10 @@ public class GameController {
     public static GamePane getGamePane() {
         return ((MainPane) scene.getRoot()).getGamePane();
     }
+    
+    public static MainPane getMainPane() {
+        return ((MainPane) scene.getRoot());
+    }
 
     public static int getScale() {
         return SCALE;
