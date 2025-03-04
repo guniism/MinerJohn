@@ -19,7 +19,6 @@ public class Zombie extends Monster {
 	private final int frameHeight = 32;
 	private Player player;
 
-	private AnimationTimer animationTimer;
 	private int frameDelay = 10;
 	private int frameCounter = 0;
 
@@ -60,8 +59,6 @@ public class Zombie extends Monster {
 
 		frameIndex = 0;
 		movingDown = false;
-
-//		setupAnimationTimer();
 		draw();
 	}
 	
@@ -71,18 +68,6 @@ public class Zombie extends Monster {
 		moveTowardPlayer();
 		animate();
 		draw();
-	}
-	
-	private void setupAnimationTimer() {
-		animationTimer = new AnimationTimer() {
-			@Override
-			public void handle(long now) {
-				moveTowardPlayer();
-				animate();
-				draw();
-			}
-		};
-		animationTimer.start();
 	}
 
 	private void animate() {

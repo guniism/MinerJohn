@@ -17,7 +17,6 @@ public class Slime extends Monster {
     private final int frameHeight = 32;
     private Player player;
     
-    private AnimationTimer animationTimer;
     private int frameDelay = 15; 
     private int frameCounter = 0;
 
@@ -53,8 +52,6 @@ public class Slime extends Monster {
 
         frameIndex = 0;
         setAnimation("idle_down"); // ✅ Start with idle animation
-
-//        setupAnimationTimer();
         draw();
     }
 
@@ -67,22 +64,7 @@ public class Slime extends Monster {
         animate();
         draw();
 	}
-	
-//    private void setupAnimationTimer() {
-//        animationTimer = new AnimationTimer() {
-//            @Override
-//            public void handle(long now) {
-//                detectPlayer();
-//                updateJump();
-//                checkCollisionWithPlayer();
-//                animate();
-//                draw();
-//            }
-//        };
-//        animationTimer.start();
-//    }
-    
-    
+  
     private void animate() {
         frameCounter++;
         if (frameCounter >= frameDelay) {
