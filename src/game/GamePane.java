@@ -194,7 +194,7 @@ public class GamePane extends Pane {
 		
 		monsters = new ArrayList<Monster>();
 		generateRandomSlimes();
-		
+		generateRandomZombies();
 //	    Slime slime = new Slime(5 * 16 * GameController.getScale(), 5 * 16 * GameController.getScale(), 2, 1, 1, player);
 //	    monsters.add(slime);
 //	    this.getChildren().add(slime);
@@ -289,7 +289,46 @@ public class GamePane extends Pane {
 		    this.getChildren().add(slime);
 		}
 	}
-	
+	private void generateRandomZombies() {
+//	Random random = new Random();
+//	int attempts;
+//	for (int i = 0; i < ZOMBIE_COUNT; i++) {
+//		double zombieX = 0, zombieY = 0;
+//		boolean isValidSpawn = false;
+//		attempts = 0;
+//		while (!isValidSpawn && attempts < 50) {
+//			int gridX = random.nextInt(5, 25);
+//			int gridY = random.nextInt(5, 10);
+//			zombieX = 16 * GameController.getScale() * gridX;
+//			zombieY = 16 * GameController.getScale() * gridY;
+//			isValidSpawn = isValidSpawnLocation(zombieX, zombieY);
+//			attempts++;
+//		}
+//		if (isValidSpawn) {
+//			Zombie zombie = new Zombie(zombieX, zombieY, 20, 5, 1, player);
+//			zombies.add(zombie);
+//			this.getChildren().add(zombie);
+//			}
+//		} 
+		Random random = new Random();
+		for (int i = 0; i < ZOMBIE_COUNT; i++) {
+		    int zombieY, zombieX;
+
+		    do {
+		    	zombieY = random.nextInt(5, mapMonster.length - 4);
+		        zombieX = random.nextInt(5, mapMonster[0].length - 4);
+		    } while (!canSpawnAt(zombieX, zombieY, mapMonster));
+
+		    zombieY *= GameController.getScale() * 16;
+		    zombieX *= GameController.getScale() * 16;
+		    
+		    Zombie zombie = new Zombie(zombieX, zombieY, 1, 5, 1, player);
+		    
+		    monsters.add(zombie);
+//		    slimes.add(slime);
+		    this.getChildren().add(zombie);
+		}
+	}
 	private boolean canSpawnAt(int x, int y, int[][] map) {
 	    // Check 3x3 surrounding area
 	    for (int i = -1; i <= 1; i++) {
@@ -304,28 +343,7 @@ public class GamePane extends Pane {
 	    return true;
 	}
 
-	/*private void generateRandomZombies() {
-		Random random = new Random();
-		int attempts;
-		for (int i = 0; i < ZOMBIE_COUNT; i++) {
-			double zombieX = 0, zombieY = 0;
-			boolean isValidSpawn = false;
-			attempts = 0;
-			while (!isValidSpawn && attempts < 50) {
-				int gridX = random.nextInt(5, 25);
-				int gridY = random.nextInt(5, 10);
-				zombieX = 16 * GameController.getScale() * gridX;
-				zombieY = 16 * GameController.getScale() * gridY;
-				isValidSpawn = isValidSpawnLocation(zombieX, zombieY);
-				attempts++;
-			}
-			if (isValidSpawn) {
-				Zombie zombie = new Zombie(zombieX, zombieY, 20, 5, 1, player);
-				zombies.add(zombie);
-				this.getChildren().add(zombie);
-			}
-		}
-	}*/
+
 
 	private void startTimer() {
 		AnimationTimer timer = new AnimationTimer() {
