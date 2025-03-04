@@ -5,7 +5,6 @@ import game.MainPane;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import ui.HealthStamBar;
 import world.Block;
 import java.util.List;
 
@@ -315,6 +314,18 @@ public class Zombie extends Monster {
 		isBiting = true;
 		bitingFrameIndex = 0;
 		bitingFrameCounter = 0;
+	}
+
+	@Override
+	public void staggerAnimation() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void playDeathAnimation() {
+		// TODO Auto-generated method stub
+		
 	}
 
 
