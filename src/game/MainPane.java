@@ -2,6 +2,8 @@ package game;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ResourceBundle.Control;
+
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import ui.*;
@@ -9,12 +11,11 @@ import utils.SpriteSheet;
 import entities.Player;
 
 public class MainPane extends Pane {
-//    private static Text floorText;
     private static int FloorNum;
     private static PixelText floorText;
     private GamePane gamePane; // Store the GamePane here
-    private HealthStamBar hBar,sBar;
     static SpriteSheet banner;
+    private Bar HBar, SBar;
     
     public MainPane() {
         // Create and store the GamePane
@@ -26,42 +27,27 @@ public class MainPane extends Pane {
         inventory.setLayoutX(265);
         inventory.setLayoutY(600);
         this.getChildren().add(inventory);
-
-        hBar = new HealthStamBar(true, 30);
-        hBar.setLayoutX(100);
-        hBar.setLayoutY(30);
         
-        sBar = new HealthStamBar(false, 30);
-        sBar.setLayoutX(100);
-        sBar.setLayoutY(75);
-        
-        this.getChildren().addAll(hBar, sBar);
-        
-        BagIcon bagIcon = new BagIcon();
-
-        Icon icon = new Icon();
-        
-        bagIcon.setLayoutX(995);
-        bagIcon.setLayoutY(635);
-        
-
         FloorNum = 1;
         createFloorBanner();
         
+        BagIcon bagIcon = new BagIcon();
+        bagIcon.setLayoutX(995);
+        bagIcon.setLayoutY(635);
+        
+        SpriteSheet icon = new SpriteSheet("stat-ui-sprite.png", 16, 17, 16, 0, 1);
         icon.setLayoutX(15);
         icon.setLayoutY(20);
-        
         this.getChildren().addAll(bagIcon, icon);
+
+        this.HBar= new Bar(getGamePane().getPlayer().getMaxHealth(), 0);
+        this.HBar.setLayoutX(100);
+        this.HBar.setLayoutY(20);
         
-        
-        Bar barH = new Bar();
-        barH.setLayoutX(100);
-        barH.setLayoutY(20);
-        
-        Bar barS = new Bar();
-        barS.setLayoutX(100);
-        barS.setLayoutY(65);
-        this.getChildren().addAll(barH, barS);
+        this.SBar = new Bar(getGamePane().getPlayer().getMaxStamina(), 1);
+        this.SBar.setLayoutX(100);
+        this.SBar.setLayoutY(65);
+        this.getChildren().addAll(HBar, SBar);
         
 //        Player.addItem(new Item(0, 0), Player.containerGrid);       
         Player.addItem(ItemRegistry.getItemById("Sword"), Player.containerGrid);
@@ -90,7 +76,6 @@ public class MainPane extends Pane {
         return gamePane;
     }
     
-
 	public static int getFloorNum() {
 		return FloorNum;
 	}
@@ -102,20 +87,17 @@ public class MainPane extends Pane {
     	floorText.setLayoutY((banner.getHeight() / 2) - floorText.getHeight() / 2);
 	}
 
-	public HealthStamBar gethBar() {
-		return hBar;
+	public void setHBar(int value) {
+		HBar.setBar(value);
 	}
 
-	public void sethBar(HealthStamBar hBar) {
-		this.hBar = hBar;
+	public void setSBar(int value) {
+		SBar.setBar(value);
 	}
 
-	public HealthStamBar getsBar() {
-		return sBar;
-	}
 
-	public void setsBar(HealthStamBar sBar) {
-		this.sBar = sBar;
-	}
+
+	
+
 	
 }
