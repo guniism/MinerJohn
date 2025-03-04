@@ -64,13 +64,20 @@ public abstract class Monster extends Character {
 	                inFront = false;
 	        }
 	        if (inFront) {
-	            if(this.blood - damage <= 0) {
-	            	return true;
+	            if (this instanceof Slime) {  // Check if the monster is a Slime
+	                ((Slime) this).staggerAnimation();  // Trigger stagger animation
+	            }     
+	            if (this.blood - damage <= 0) {
+	                if (this instanceof Slime) {  // Check if it's a Slime
+	                    ((Slime) this).playDeathAnimation(); // Trigger death animation
+	                    return false; // Prevent immediate removal
+	                }
+	                return true;
+	            } else {
+	                this.blood = this.blood - damage;
 	            }
-	            else {
-	            	this.blood = this.blood - damage;
-	            }
-	        }  
+	        }
+
 	    }
 	    return false;
 

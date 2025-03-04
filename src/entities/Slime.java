@@ -2,6 +2,7 @@ package entities;
 
 import game.GameController;
 import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import world.Block;
@@ -77,12 +78,17 @@ public class Slime extends Monster {
         switch (state) {
             case "idle_down": frameIndex = 0; totalFrames = 2; frameDelay = 50; lastDirection = "down"; break;
             case "jump_down": frameIndex = 0; totalFrames = 7; frameDelay = 15; lastDirection = "down"; break;
+            case "damaged_down": frameIndex = 2; totalFrames = 3; frameDelay = 50; lastDirection = "down"; break;
             case "idle_up": frameIndex = 0; totalFrames = 2; frameDelay = 50; lastDirection = "up"; break;
             case "jump_up": frameIndex = 0; totalFrames = 7; frameDelay = 15; lastDirection = "up"; break;
+            case "damaged_up": frameIndex = 2; totalFrames = 3; frameDelay = 50; lastDirection = "up"; break;
             case "idle_right": frameIndex = 0; totalFrames = 2; frameDelay = 50; lastDirection = "right"; break;
             case "jump_right": frameIndex = 0; totalFrames = 7; frameDelay = 15; lastDirection = "right"; break;
+            case "damaged_right": frameIndex = 2; totalFrames = 3; frameDelay = 50; lastDirection = "right"; break;
             case "idle_left": frameIndex = 0; totalFrames = 2; frameDelay = 50; lastDirection = "left"; break;
             case "jump_left": frameIndex = 0; totalFrames = 7; frameDelay = 15; lastDirection = "left"; break;
+            case "damaged_left": frameIndex = 2; totalFrames = 3; frameDelay = 50; lastDirection = "left"; break;
+            case "death_all": frameIndex = 0; totalFrames = 3; frameDelay = 50; lastDirection = "death"; break;
         }
     }
 
@@ -205,8 +211,40 @@ public class Slime extends Monster {
             }).start();
         }
     }
+    
+    public void staggerAnimation() {
+        jumping = false; // Stop jumping
+        setAnimation("damaged_" + lastDirection); // Set damaged animation
+
+        new Thread(() -> {
+            try {
+                Thread.sleep(200); // Wait for 200ms before switching animation
+                Platform.runLater(() -> setAnimation("idle_" + lastDirection)); // Switch to idle safely
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
 
 
+    
+    public void playDeathAnimation() {
+        jumping = false; // Stop moving
+        setAnimation("death_all");
+        new Thread(() -> {
+            try {
+            	Platform.runLater(() -> {
+                    GameController.getGamePane().getChildren().remove(this); // Remove slime
+                    GameController.getGamePane().getMonsters().remove(this); // Remove from monster list
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+        
+    }
+
+    
     public void draw() {
         GraphicsContext gc = this.getGraphicsContext2D();
         gc.clearRect(0, 0, this.getWidth(), this.getHeight());
@@ -214,15 +252,16 @@ public class Slime extends Monster {
 
         // ✅ Set the correct animation row
         int row;
-        if (lastDirection.equals("up")) {
-            row = jumping ? 3 : 2; // Jump up / Idle up
+        if (lastDirection.equals("death")) {
+            row = 6; // Death animation row
+        } else if (lastDirection.equals("up")) {
+            row = jumping ? 3 : 2;
         } else if (lastDirection.equals("down")) {
-            row = jumping ? 1 : 0; // Jump down / Idle down
-        } else if (lastDirection.equals("right") || lastDirection.equals("left")) {
-            row = jumping ? 5 : 4; // Right animation used for both right & left
+            row = jumping ? 1 : 0;
         } else {
-            row = 0;
+            row = jumping ? 5 : 4;
         }
+
 
 
         double srcX = frameIndex * frameWidth;

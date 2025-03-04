@@ -51,7 +51,7 @@ public class GamePane extends Pane {
 	private List<FloatingItem> floatingItems = new ArrayList<>();
 	private Rectangle transitionScreen;
 //	private static final int ROCK_COUNT = 10; // Number of randomly placed rocks
-	private int SLIME_COUNT = 3, ZOMBIE_COUNT = 3;
+	private int SLIME_COUNT = 2, ZOMBIE_COUNT = 0;
 //	private List<Slime> slimes;
 //	private List<Zombie> zombies;
 	private List<Monster> monsters;
@@ -270,7 +270,7 @@ public class GamePane extends Pane {
 		        slimeY = random.nextInt(5, mapMonster.length - 4);
 		        slimeX = random.nextInt(5, mapMonster[0].length - 4);
 		    } while (!canSpawnAt(slimeX, slimeY, mapMonster));
-
+		    mapMonster[slimeY][slimeX] = -3;
 		    slimeY *= GameController.getScale() * 16;
 		    slimeX *= GameController.getScale() * 16;
 		    
@@ -310,7 +310,7 @@ public class GamePane extends Pane {
 		    	zombieY = random.nextInt(5, mapMonster.length - 4);
 		        zombieX = random.nextInt(5, mapMonster[0].length - 4);
 		    } while (!canSpawnAt(zombieX, zombieY, mapMonster));
-
+		    mapMonster[zombieY][zombieX] = -3;
 		    zombieY *= GameController.getScale() * 16;
 		    zombieX *= GameController.getScale() * 16;
 		    
