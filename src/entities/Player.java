@@ -2,11 +2,9 @@ package entities;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import game.GameController;
 import game.Item;
-import game.MainPane;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
@@ -20,10 +18,14 @@ import world.Pickaxeable;
 public class Player extends Canvas {
     private final int WIDTH;
     private final int HEIGHT;
+    private final int MAX_HEALTH;
+    private final int MAX_STAMINA;
     private double x;
     private double y;
     private int speed;
-
+    private int health;
+    private int stamina;
+    
     private Image spriteSheet;
     private Image miningSpriteSheet;
     private Image attackingSpriteSheet; 
@@ -81,10 +83,14 @@ public class Player extends Canvas {
     public Player() {
         WIDTH = frameWidth * GameController.getScale();
         HEIGHT = frameHeight * GameController.getScale();
+        MAX_HEALTH = 30;
+        MAX_STAMINA = 60;
         setSpeed(GameController.getScale());
         setX(1080 / 2 - WIDTH / 2);
         setY(720 / 2 - HEIGHT / 2 - HEIGHT / 4);
-
+        setHealth(MAX_HEALTH);
+        setStamina(MAX_STAMINA);
+        
         // Load sprite sheets
         String playerPath = ClassLoader.getSystemResource("boy.png").toString();
         spriteSheet = new Image(playerPath);
@@ -471,16 +477,13 @@ public class Player extends Canvas {
     
     public void useSword() {
     	Iterator<Monster> iterator = GameController.getGamePane().getMonsters().iterator();
-
     	while (iterator.hasNext()) {
     	    Monster slime = iterator.next();
     	    int damage = 1;
-
     	    if (slime.getAttack(damage)) {
     	        System.err.println("monster die");
-//    	        slime.stopAnimation();
-    	        iterator.remove(); // Safely remove from the list
-    	        GameController.getGamePane().getChildren().remove(slime); // Remove from UI
+//    	        iterator.remove(); // Safely remove from the list
+//    	        GameController.getGamePane().getChildren().remove(slime); // Remove from UI
     	    }
     	}
     }
@@ -542,6 +545,8 @@ public class Player extends Canvas {
 					            e.printStackTrace();
 					        }
 					    }).start();
+						GameController.getGamePane().setPlayerStamina(getStamina() - 1);
+
 						if (ore.isBrokeFromBreak(damage)) {
 							FloatingItem dropItem = new FloatingItem(ore.getItemRow(), ore.getItemCol(),(int) targetMineBlockX, (int) targetMineBlockY);
 							iterator.remove();
@@ -656,6 +661,48 @@ public class Player extends Canvas {
 
 	public void setDying(boolean isDying) {
 		this.isDying = isDying;
+	}
+
+	public int getHealth() {
+		return health;
+	}
+
+	public void setHealth(int health) {
+		if(health <= 0) {
+			this.health = 0;
+			//dead
+		}
+		else if(health > MAX_HEALTH) {
+			this.health = MAX_HEALTH;
+		}
+		else {
+			this.health = health;
+		}
+	}
+	
+	public int getMaxHealth() {
+		return MAX_HEALTH;
+	}
+	
+	
+	public int getStamina() {
+		return stamina;
+	}
+
+	public void setStamina(int stamina) {
+		if(stamina <= 0) {
+			this.stamina = 0;
+		}
+		else if(stamina > MAX_STAMINA) {
+			this.stamina = MAX_STAMINA;
+		}
+		else {
+			this.stamina = stamina;
+		}
+	}
+	
+	public int getMaxStamina() {
+		return MAX_STAMINA;
 	}
 
     

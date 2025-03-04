@@ -18,10 +18,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import ui.Bag;
 import ui.CloseButtonPane;
-import ui.HealthStamBar;
 import ui.InventoryButton;
-import ui.PixelText;
-import utils.SpriteSheet;
 import world.Block;
 import world.Interactable;
 import world.Ladder;
@@ -46,14 +43,11 @@ public class GamePane extends Pane {
 	private CloseButtonPane closeButton;
 	private static boolean pass = true;
 	private int[][] mapBlock, mapMonster;
-//	private Block[][] blockArray;
 	private List<Block> blocks = new ArrayList<>(); // Store all rocks
 	private List<FloatingItem> floatingItems = new ArrayList<>();
 	private Rectangle transitionScreen;
 //	private static final int ROCK_COUNT = 10; // Number of randomly placed rocks
 	private int SLIME_COUNT = 2, ZOMBIE_COUNT = 0;
-//	private List<Slime> slimes;
-//	private List<Zombie> zombies;
 	private List<Monster> monsters;
 	private int ladderX;
 	private int ladderY;
@@ -62,10 +56,7 @@ public class GamePane extends Pane {
 		this.mother = mother;
 		this.gameMap = new Map();
 		this.player = new Player();
-//		this.slimes = new ArrayList<>();
-
 		this.blocks = new ArrayList<>();
-//		this.zombies = new ArrayList<>();
 		this.getChildren().add(this.gameMap);
 
 		this.playerCenterAbsX = this.player.getX() + this.getLayoutX() - 16 * GameController.getScale();
@@ -184,7 +175,7 @@ public class GamePane extends Pane {
 
 		this.getChildren().add(this.player);
 		mapMonster = mapBlock;
-		
+
 		monsters = new ArrayList<Monster>();
 		generateRandomSlimes();
 		generateRandomZombies();
@@ -195,17 +186,9 @@ public class GamePane extends Pane {
 
 	public void createLadder(int gridX, int gridY) {
 		Ladder ladder = new Ladder();
+		ladder.setLayoutX(16 * GameController.getScale() * gridX);
+		ladder.setLayoutY(16 * GameController.getScale() * gridY);
 
-		// Set position
-		double x = 16 * GameController.getScale() * gridX;
-		double y = 16 * GameController.getScale() * gridY;
-		ladder.setLayoutX(x);
-		ladder.setLayoutY(y);
-
-		// Debugging
-		System.out.println("Ladder added to scene at: " + x + ", " + y);
-
-		// Add to scene
 		this.getChildren().add(ladder);
 		blocks.add(ladder);
 	}
@@ -226,18 +209,26 @@ public class GamePane extends Pane {
 			return;
 		}
 
-		// Only execute mining if ladder wasn’t clicked
-		if (Player.getUsingItem().getRow() == 0 && Player.getUsingItem().getCol() == 0 && !player.isMining()) {
-			System.out.println("player is Mining");
-			player.setMining(true);
-			player.mine();
-		}
-
-		else if (Player.getUsingItem().getRow() == 1 && Player.getUsingItem().getCol() == 4) {
+		
+		if (Player.getUsingItem().getRow() == 1 && Player.getUsingItem().getCol() == 4) {
 			System.out.println("player is Attacking");
 			player.setAttacking(true);
 			player.attack();
 		}
+		
+		if (player.getStamina() > 0) {
+			// Only execute mining if ladder wasn’t clicked
+			if (Player.getUsingItem().getRow() == 0 && Player.getUsingItem().getCol() == 0 && !player.isMining()) {
+				System.out.println("player is Mining");
+				player.setMining(true);
+				player.mine();
+				
+			}
+		} else {
+			System.out.println("Player has no stamina!");
+		}
+
+	
 	}
 
 	private boolean interactBlockClick(MouseEvent event) {
@@ -255,7 +246,6 @@ public class GamePane extends Pane {
 					interactBlock.response();
 					return true;
 				}
-
 			}
 		}
 		return false;
@@ -264,78 +254,57 @@ public class GamePane extends Pane {
 	private void generateRandomSlimes() {
 		Random random = new Random();
 		for (int i = 0; i < SLIME_COUNT; i++) {
-		    int slimeY, slimeX;
+			int slimeY, slimeX;
 
-		    do {
-		        slimeY = random.nextInt(5, mapMonster.length - 4);
-		        slimeX = random.nextInt(5, mapMonster[0].length - 4);
-		    } while (!canSpawnAt(slimeX, slimeY, mapMonster));
-		    mapMonster[slimeY][slimeX] = -3;
-		    slimeY *= GameController.getScale() * 16;
-		    slimeX *= GameController.getScale() * 16;
-		    
-		    Slime slime = new Slime(slimeX, slimeY, 2, 1, 1, player);
-		    
-		    monsters.add(slime);
-//		    slimes.add(slime);
-		    this.getChildren().add(slime);
+			do {
+				slimeY = random.nextInt(5, mapMonster.length - 4);
+				slimeX = random.nextInt(5, mapMonster[0].length - 4);
+			} while (!canSpawnAt(slimeX, slimeY, mapMonster));
+			mapMonster[slimeY][slimeX] = -3;
+			slimeY *= GameController.getScale() * 16;
+			slimeX *= GameController.getScale() * 16;
+
+			Slime slime = new Slime(slimeX, slimeY, 2, 1, 1, player);
+
+			monsters.add(slime);
+			this.getChildren().add(slime);
 		}
 	}
+
 	private void generateRandomZombies() {
-//	Random random = new Random();
-//	int attempts;
-//	for (int i = 0; i < ZOMBIE_COUNT; i++) {
-//		double zombieX = 0, zombieY = 0;
-//		boolean isValidSpawn = false;
-//		attempts = 0;
-//		while (!isValidSpawn && attempts < 50) {
-//			int gridX = random.nextInt(5, 25);
-//			int gridY = random.nextInt(5, 10);
-//			zombieX = 16 * GameController.getScale() * gridX;
-//			zombieY = 16 * GameController.getScale() * gridY;
-//			isValidSpawn = isValidSpawnLocation(zombieX, zombieY);
-//			attempts++;
-//		}
-//		if (isValidSpawn) {
-//			Zombie zombie = new Zombie(zombieX, zombieY, 20, 5, 1, player);
-//			zombies.add(zombie);
-//			this.getChildren().add(zombie);
-//			}
-//		} 
 		Random random = new Random();
 		for (int i = 0; i < ZOMBIE_COUNT; i++) {
-		    int zombieY, zombieX;
+			int zombieY, zombieX;
 
-		    do {
-		    	zombieY = random.nextInt(5, mapMonster.length - 4);
-		        zombieX = random.nextInt(5, mapMonster[0].length - 4);
-		    } while (!canSpawnAt(zombieX, zombieY, mapMonster));
-		    mapMonster[zombieY][zombieX] = -3;
-		    zombieY *= GameController.getScale() * 16;
-		    zombieX *= GameController.getScale() * 16;
-		    
-		    Zombie zombie = new Zombie(zombieX, zombieY, 1, 5, 1, player);
-		    
-		    monsters.add(zombie);
-//		    slimes.add(slime);
-		    this.getChildren().add(zombie);
+			do {
+				zombieY = random.nextInt(5, mapMonster.length - 4);
+				zombieX = random.nextInt(5, mapMonster[0].length - 4);
+			} while (!canSpawnAt(zombieX, zombieY, mapMonster));
+			mapMonster[zombieY][zombieX] = -3;
+			zombieY *= GameController.getScale() * 16;
+			zombieX *= GameController.getScale() * 16;
+
+			Zombie zombie = new Zombie(zombieX, zombieY, 1, 5, 1, player);
+
+			monsters.add(zombie);
+			this.getChildren().add(zombie);
 		}
 	}
+
 	private boolean canSpawnAt(int x, int y, int[][] map) {
-	    // Check 3x3 surrounding area
-	    for (int i = -1; i <= 1; i++) {
-	        for (int j = -1; j <= 1; j++) {
-	            int checkY = y + i;
-	            int checkX = x + j;
-	            if (checkY < 0 || checkY >= map.length || checkX < 0 || checkX >= map[0].length || map[checkY][checkX] != 0) {
-	                return false; // Not a valid spawn location
-	            }
-	        }
-	    }
-	    return true;
+		// Check 3x3 surrounding area
+		for (int i = -1; i <= 1; i++) {
+			for (int j = -1; j <= 1; j++) {
+				int checkY = y + i;
+				int checkX = x + j;
+				if (checkY < 0 || checkY >= map.length || checkX < 0 || checkX >= map[0].length
+						|| map[checkY][checkX] != 0) {
+					return false; // Not a valid spawn location
+				}
+			}
+		}
+		return true;
 	}
-
-
 
 	private void startTimer() {
 		AnimationTimer timer = new AnimationTimer() {
@@ -358,37 +327,37 @@ public class GamePane extends Pane {
 		if (GameController.getKeyboardController().isBag() && pass) {
 //			Thread thread = new Thread(() -> {
 //				Platform.runLater(() -> {
-					if (bag == null) {
-						bag = new Bag();
-					}
-					inv = new InventoryButton();
-					inv.setLayoutX(265);
-					inv.setLayoutY(60);
-					bag.setLayoutX(265);
-					bag.setLayoutY(115);
-					closeButton = new CloseButtonPane(mother, bag, inv);
-					closeButton.setLayoutX(760);
-					closeButton.setLayoutY(60);
+			if (bag == null) {
+				bag = new Bag();
+			}
+			inv = new InventoryButton();
+			inv.setLayoutX(265);
+			inv.setLayoutY(60);
+			bag.setLayoutX(265);
+			bag.setLayoutY(115);
+			closeButton = new CloseButtonPane(mother, bag, inv);
+			closeButton.setLayoutX(760);
+			closeButton.setLayoutY(60);
 
-					// ponG บอกมา
-					if (!mother.getChildren().contains(bag)) {
-						mother.getChildren().add(bag);
-					} else {
-						System.out.println("Bag is already added!");
-					}
+			// ponG บอกมา
+			if (!mother.getChildren().contains(bag)) {
+				mother.getChildren().add(bag);
+			} else {
+				System.out.println("Bag is already added!");
+			}
 
-					mother.getChildren().addAll(inv, closeButton);
-					pass = false;
+			mother.getChildren().addAll(inv, closeButton);
+			pass = false;
 //				});
 //			});
 //			thread.start();
 		} else if (!GameController.getKeyboardController().isBag() && !pass) {
 //			Platform.runLater(() -> {
-				mother.getChildren().removeAll(inv, bag, closeButton);
-				bag = null;
-				inv = null;
-				closeButton = null;
-				pass = true;
+			mother.getChildren().removeAll(inv, bag, closeButton);
+			bag = null;
+			inv = null;
+			closeButton = null;
+			pass = true;
 //			});
 		}
 
@@ -442,11 +411,9 @@ public class GamePane extends Pane {
 				Math.min(0, newLayoutX));
 		newLayoutY = Math.max(-(this.gameMap.getHeight() - ((10 * 16 - 8) * GameController.getScale())),
 				Math.min(0, newLayoutY));
-		// System.out.println(newLayoutX);
 		this.setLayoutX(newLayoutX);
 		this.setLayoutY(newLayoutY);
 
-		// Move Player
 		this.player.setX(this.player.getX() + dx);
 		this.player.setY(this.player.getY() + dy);
 		this.player.setLayoutX(this.player.getX());
@@ -454,7 +421,6 @@ public class GamePane extends Pane {
 //		adjustViewOrder();
 
 		// Floating item
-//		for (FloatingItem item : floatingItems) {
 		Iterator<FloatingItem> iterator = floatingItems.iterator();
 		while (iterator.hasNext()) {
 			FloatingItem item = iterator.next();
@@ -497,10 +463,11 @@ public class GamePane extends Pane {
 
 			}
 		}
-		
+
 		// Update monster
-		for(Monster monster : getMonsters()) {
-			monster.update();
+		for (Monster monster : getMonsters()) {
+			Platform.runLater(() -> monster.update());
+
 		}
 	}
 
@@ -615,20 +582,17 @@ public class GamePane extends Pane {
 		// Prevent taking damage if already dead
 		if (player.isDead())
 			return;
+		setPlayerHealth(player.getHealth() - damage);
+	}
 
-		MainPane mainPane = (MainPane) mother;
-		if (mainPane != null) {
-			HealthStamBar healthBar = mainPane.gethBar();
-			int currentHealth = healthBar.getBarAmount();
+	public void setPlayerHealth(int health) {
+		player.setHealth(health);
+		GameController.getMainPane().setHBar(player.getHealth());
+	}
 
-			int newHealth = Math.max(0, currentHealth - damage);
-			healthBar.setBarAmount(newHealth);
-
-			if (newHealth == 0 && !player.isDead()) {
-				System.out.println("Player is dead!");
-				player.die(() -> resetGame()); // Only called once
-			}
-		}
+	public void setPlayerStamina(int stamina) {
+		player.setStamina(stamina);
+		GameController.getMainPane().setSBar(player.getStamina());
 	}
 
 	private void resetGame() {
@@ -672,8 +636,8 @@ public class GamePane extends Pane {
 						// Regenerate world
 //						generateRandomBlocks();
 //						generateRandomLadder();
-						//generateRandomSlimes();
-						//generateRandomZombies();
+						// generateRandomSlimes();
+						// generateRandomZombies();
 
 						// Reset player stats
 						player.setX(1080 / 2 - player.getWidth() / 2 - 16 * GameController.getScale());
@@ -686,10 +650,10 @@ public class GamePane extends Pane {
 						player.setCanMove(true);
 
 						// Reset player's health
-						MainPane mainPane = (MainPane) mother;
-						if (mainPane != null) {
-							mainPane.gethBar().setBarAmount(30); // Reset health to full
-						}
+//						MainPane mainPane = (MainPane) mother;
+//						if (mainPane != null) {
+//							mainPane.getHBar().setBar(100); // Reset health to full
+//						}
 
 						// Ensure the player is added back
 						if (!getChildren().contains(player)) {
@@ -731,17 +695,13 @@ public class GamePane extends Pane {
 	public List<FloatingItem> getfloatingItems() {
 		return floatingItems;
 	}
-	
+
 	public List<Monster> getMonsters() {
 		return monsters;
 	}
 
-	public void setBlocks(List<Block> blocks) {
-		this.blocks = blocks;
-	}
-
-//	public List<Zombie> getZombies() {
-//		return zombies;
+//	public void setBlocks(List<Block> blocks) {
+//		this.blocks = blocks;
 //	}
 
 	public int[][] getMapBlock() {
