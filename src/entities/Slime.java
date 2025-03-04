@@ -32,6 +32,10 @@ public class Slime extends Monster {
 
     public Slime(double x, double y, int blood, int damage, int speed, Player player) {
         super(x, y, blood, damage, speed);
+        this.boxWidth = 12;
+        this.boxHeight = 7;
+        this.plusToCenX = 8;
+        this.plusToCenY = 16 + 8 + 4;
         
         // ✅ Store player instance to avoid null reference
         this.player = player;
@@ -50,25 +54,35 @@ public class Slime extends Monster {
         frameIndex = 0;
         setAnimation("idle_down"); // ✅ Start with idle animation
 
-        setupAnimationTimer();
+//        setupAnimationTimer();
         draw();
     }
 
-
-    private void setupAnimationTimer() {
-        animationTimer = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                detectPlayer();
-                updateJump();
-                checkCollisionWithPlayer();
-                animate();
-                draw();
-            }
-        };
-        animationTimer.start();
-    }
-
+	@Override
+	public void update() {
+		// TODO Auto-generated method stub
+        detectPlayer();
+        updateJump();
+        checkCollisionWithPlayer();
+        animate();
+        draw();
+	}
+	
+//    private void setupAnimationTimer() {
+//        animationTimer = new AnimationTimer() {
+//            @Override
+//            public void handle(long now) {
+//                detectPlayer();
+//                updateJump();
+//                checkCollisionWithPlayer();
+//                animate();
+//                draw();
+//            }
+//        };
+//        animationTimer.start();
+//    }
+    
+    
     private void animate() {
         frameCounter++;
         if (frameCounter >= frameDelay) {

@@ -3,6 +3,7 @@ package game;
 import entities.Slime;
 import entities.Zombie;
 import entities.FloatingItem;
+import entities.Monster;
 import entities.Player;
 import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
@@ -19,6 +20,8 @@ import ui.Bag;
 import ui.CloseButtonPane;
 import ui.HealthStamBar;
 import ui.InventoryButton;
+import ui.PixelText;
+import utils.SpriteSheet;
 import world.Block;
 import world.Interactable;
 import world.Ladder;
@@ -51,6 +54,7 @@ public class GamePane extends Pane {
 	private int SLIME_COUNT = 3, ZOMBIE_COUNT = 3;
 	private List<Slime> slimes;
 	private List<Zombie> zombies;
+	private List<Monster> monsters;
 	private int ladderX;
 	private int ladderY;
 
@@ -77,7 +81,7 @@ public class GamePane extends Pane {
 		generateNextMap();
 
 		setupMouseHandler();
-		startMovement();
+		startTimer();
 	}
 
 	private void generateNextMap() {
@@ -187,7 +191,14 @@ public class GamePane extends Pane {
 
 		this.getChildren().add(this.player);
 		mapMonster = mapBlock;
+		
+		monsters = new ArrayList<Monster>();
 		generateRandomSlimes();
+		
+//	    Slime slime = new Slime(5 * 16 * GameController.getScale(), 5 * 16 * GameController.getScale(), 2, 1, 1, player);
+//	    monsters.add(slime);
+//	    this.getChildren().add(slime);
+		
 	}
 
 	public void createLadder(int gridX, int gridY) {
@@ -239,7 +250,7 @@ public class GamePane extends Pane {
 
 	private boolean interactBlockClick(MouseEvent event) {
 		for (Block block : this.blocks) {
-			if (block instanceof Interactable) {
+			if (block instanceof Interactable interactBlock) {
 				int mouseX = (int) (event.getX() / GameController.getScale() / 16);
 				int mouseY = (int) (event.getY() / GameController.getScale() / 16);
 				int x = (int) (block.getLayoutX() / GameController.getScale() / 16);
@@ -249,7 +260,7 @@ public class GamePane extends Pane {
 //				System.out.println("X=" + x + ", Y=" + y);
 
 				if (mouseX == x && mouseY == y) {
-					((Interactable) block).response();
+					interactBlock.response();
 					return true;
 				}
 
@@ -272,7 +283,9 @@ public class GamePane extends Pane {
 		    slimeX *= GameController.getScale() * 16;
 		    
 		    Slime slime = new Slime(slimeX, slimeY, 2, 1, 1, player);
-		    slimes.add(slime);
+		    
+		    monsters.add(slime);
+//		    slimes.add(slime);
 		    this.getChildren().add(slime);
 		}
 	}
@@ -314,17 +327,17 @@ public class GamePane extends Pane {
 		}
 	}*/
 
-	private void startMovement() {
+	private void startTimer() {
 		AnimationTimer timer = new AnimationTimer() {
 			@Override
 			public void handle(long now) {
-				move();
+				update();
 			}
 		};
 		timer.start();
 	}
 
-	private void move() {
+	private void update() {
 		double dx = 0, dy = 0;
 
 		boolean movingDown = false;
@@ -333,8 +346,8 @@ public class GamePane extends Pane {
 		boolean movingLeft = false;
 
 		if (GameController.getKeyboardController().isBag() && pass) {
-			Thread thread = new Thread(() -> {
-				Platform.runLater(() -> {
+//			Thread thread = new Thread(() -> {
+//				Platform.runLater(() -> {
 					if (bag == null) {
 						bag = new Bag();
 					}
@@ -356,17 +369,17 @@ public class GamePane extends Pane {
 
 					mother.getChildren().addAll(inv, closeButton);
 					pass = false;
-				});
-			});
-			thread.start();
+//				});
+//			});
+//			thread.start();
 		} else if (!GameController.getKeyboardController().isBag() && !pass) {
-			Platform.runLater(() -> {
+//			Platform.runLater(() -> {
 				mother.getChildren().removeAll(inv, bag, closeButton);
 				bag = null;
 				inv = null;
 				closeButton = null;
 				pass = true;
-			});
+//			});
 		}
 
 		if (player.canMove()) {
@@ -473,6 +486,11 @@ public class GamePane extends Pane {
 				iterator.remove();
 
 			}
+		}
+		
+		// Update monster
+		for(Monster monster : getMonsters()) {
+			monster.update();
 		}
 	}
 
@@ -700,6 +718,10 @@ public class GamePane extends Pane {
 
 	public List<FloatingItem> getfloatingItems() {
 		return floatingItems;
+	}
+	
+	public List<Monster> getMonsters() {
+		return monsters;
 	}
 
 	public void setBlocks(List<Block> blocks) {

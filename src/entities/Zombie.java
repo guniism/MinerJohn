@@ -56,10 +56,18 @@ public class Zombie extends Monster {
 		frameIndex = 0;
 		movingDown = false;
 
-		setupAnimationTimer();
+//		setupAnimationTimer();
 		draw();
 	}
-
+	
+	@Override
+	public void update() {
+		// TODO Auto-generated method stub
+		moveTowardPlayer();
+		animate();
+		draw();
+	}
+	
 	private void setupAnimationTimer() {
 		animationTimer = new AnimationTimer() {
 			@Override
@@ -316,5 +324,7 @@ public class Zombie extends Monster {
 		bitingFrameIndex = 0;
 		bitingFrameCounter = 0;
 	}
+
+
 	
 }

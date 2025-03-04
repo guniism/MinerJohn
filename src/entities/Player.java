@@ -2,6 +2,7 @@ package entities;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import game.GameController;
 import game.Item;
@@ -83,7 +84,6 @@ public class Player extends Canvas {
         setSpeed(GameController.getScale());
         setX(1080 / 2 - WIDTH / 2);
         setY(720 / 2 - HEIGHT / 2 - HEIGHT / 4);
-
 
         // Load sprite sheets
         String playerPath = ClassLoader.getSystemResource("boy.png").toString();
@@ -197,7 +197,10 @@ public class Player extends Canvas {
                         if (attackingFrameIndex == 0) {
                             isAttacking = false;
                             setCanMove(true);
-                            useSword();
+                        }
+                        
+                        if (attackingFrameIndex == 2) {
+                        	useSword();
                         }
                     }
                 } else if (isMining) {
@@ -465,6 +468,23 @@ public class Player extends Canvas {
             miningFrameCounter = 0;
         }
     }
+    
+    public void useSword() {
+    	Iterator<Monster> iterator = GameController.getGamePane().getMonsters().iterator();
+
+    	while (iterator.hasNext()) {
+    	    Monster slime = iterator.next();
+    	    int damage = 1;
+
+    	    if (slime.getAttack(damage)) {
+    	        System.err.println("monster die");
+//    	        slime.stopAnimation();
+    	        iterator.remove(); // Safely remove from the list
+    	        GameController.getGamePane().getChildren().remove(slime); // Remove from UI
+    	    }
+    	}
+    }
+    
     public void usePickaxe() {
 		double playerFootX = getX() + (8 + 24 - 8) * GameController.getScale();
 		double playerFootY = getY() + (32) * GameController.getScale();
@@ -548,9 +568,7 @@ public class Player extends Canvas {
 		}
     }
     
-    public void useSword() {
-    	
-    }
+
     
     public void setMovingDown(boolean movingDown) {
         this.movingDown = movingDown;
