@@ -1,21 +1,21 @@
 package entities;
 
 import game.GameController;
-import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import world.Block;
-import entities.Player;
 
 public class Slime extends Monster {
     private final int WIDTH;
     private final int HEIGHT;
+    private static final int FRAME_WIDTH = 16;
+    private static final int FRAME_HEIGHT = 32;
     private Image spriteSheet;
     private int frameIndex;
     private int totalFrames;
-    private final int frameWidth = 16;
-    private final int frameHeight = 32;
+    
+
     private Player player;
     
     private int frameDelay = 15; 
@@ -36,32 +36,32 @@ public class Slime extends Monster {
         this.boxHeight = 7;
         this.plusToCenX = 8;
         this.plusToCenY = 16 + 8 + 4;
-        
-        // ✅ Store player instance to avoid null reference
         this.player = player;
         
-        WIDTH = frameWidth * GameController.getScale();
-        HEIGHT = frameHeight * GameController.getScale();
+        WIDTH = FRAME_WIDTH * GameController.getScale();
+        HEIGHT = FRAME_HEIGHT * GameController.getScale();
 
         String path = ClassLoader.getSystemResource("slime-sprite.png").toString();
-        spriteSheet = new Image(path);
-
+        this.spriteSheet = new Image(path);
+        
         this.setWidth(WIDTH);
         this.setHeight(HEIGHT);
         this.setLayoutX(x);
         this.setLayoutY(y);
 
         frameIndex = 0;
-        setAnimation("idle_down"); // ✅ Start with idle animation
+        setAnimation("idle_down");
         draw();
     }
 
 	@Override
 	public void update() {
 		// TODO Auto-generated method stub
-        detectPlayer();
-        updateJump();
-        checkCollisionWithPlayer();
+		if(!lastDirection.equals("death")) {
+			detectPlayer();
+			updateJump();
+			checkCollisionWithPlayer();
+		}
         animate();
         draw();
 	}
@@ -71,6 +71,11 @@ public class Slime extends Monster {
         if (frameCounter >= frameDelay) {
             frameCounter = 0;
             frameIndex = (frameIndex + 1) % totalFrames;
+        }
+        if(lastDirection.equals("death") && frameIndex == totalFrames - 1) {
+//        	System.out.println("dead " + frameIndex);
+        	GameController.getGamePane().getChildren().remove(this); // Remove slime
+            GameController.getGamePane().getMonsters().remove(this); // Remove from monster list
         }
     }
 
@@ -88,7 +93,7 @@ public class Slime extends Monster {
             case "idle_left": frameIndex = 0; totalFrames = 2; frameDelay = 50; lastDirection = "left"; break;
             case "jump_left": frameIndex = 0; totalFrames = 7; frameDelay = 15; lastDirection = "left"; break;
             case "damaged_left": frameIndex = 2; totalFrames = 3; frameDelay = 50; lastDirection = "left"; break;
-            case "death_all": frameIndex = 0; totalFrames = 3; frameDelay = 50; lastDirection = "death"; break;
+            case "death_all": frameIndex = 0; totalFrames = 4; frameDelay = 15; lastDirection = "death"; break;
         }
     }
 
@@ -144,6 +149,7 @@ public class Slime extends Monster {
                 targetY = slimeY - 50;
             }
         }
+        
     }
 
     private void updateJump() {
@@ -212,8 +218,11 @@ public class Slime extends Monster {
         }
     }
     
-    public void staggerAnimation() {
-        jumping = false; // Stop jumping
+
+	@Override
+	public void staggerAnimation() {
+		// TODO Auto-generated method stub
+		jumping = false; // Stop jumping
         setAnimation("damaged_" + lastDirection); // Set damaged animation
 
         new Thread(() -> {
@@ -224,24 +233,13 @@ public class Slime extends Monster {
                 e.printStackTrace();
             }
         }).start();
-    }
+	}
 
-
-    
+	@Override
     public void playDeathAnimation() {
-        jumping = false; // Stop moving
+		// TODO Auto-generated method stub
+        jumping = false;
         setAnimation("death_all");
-        new Thread(() -> {
-            try {
-            	Platform.runLater(() -> {
-                    GameController.getGamePane().getChildren().remove(this); // Remove slime
-                    GameController.getGamePane().getMonsters().remove(this); // Remove from monster list
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
-        
     }
 
     
@@ -262,20 +260,20 @@ public class Slime extends Monster {
             row = jumping ? 5 : 4;
         }
 
-
-
-        double srcX = frameIndex * frameWidth;
-        double srcY = row * frameHeight;
+        double srcX = frameIndex * FRAME_WIDTH;
+        double srcY = row * FRAME_HEIGHT;
 
         // ✅ Flip horizontally when facing left
         if (lastDirection.equals("left")) {
             gc.save(); // Save the current transformation
             gc.translate(WIDTH, 0); // Move to the right edge
             gc.scale(-1, 1); // Flip horizontally
-            gc.drawImage(spriteSheet, srcX, srcY, frameWidth, frameHeight, 0, 0, WIDTH, HEIGHT);
+            gc.drawImage(spriteSheet, srcX, srcY, FRAME_WIDTH, FRAME_HEIGHT, 0, 0, WIDTH, HEIGHT);
             gc.restore(); // Restore original transformation
         } else {
-            gc.drawImage(spriteSheet, srcX, srcY, frameWidth, frameHeight, 0, 0, WIDTH, HEIGHT);
+            gc.drawImage(spriteSheet, srcX, srcY, FRAME_WIDTH, FRAME_HEIGHT, 0, 0, WIDTH, HEIGHT);
         }
     }
+
+
 }
