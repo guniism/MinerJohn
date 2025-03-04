@@ -38,6 +38,11 @@ public class Zombie extends Monster {
 
 	public Zombie(double x, double y, int blood, int damage, int speed, Player player) {
 		super(x, y, blood, damage, speed);
+        this.boxWidth = 10;
+        this.boxHeight = 17;
+        this.plusToCenX = 8;
+        this.plusToCenY = 16 + 7;
+        
 		this.player = player;
 		WIDTH = frameWidth * GameController.getScale();
 		HEIGHT = frameHeight * GameController.getScale();
