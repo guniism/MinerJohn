@@ -17,6 +17,8 @@ public abstract class Monster extends Character {
     }
     
     public abstract void update();
+    public abstract void staggerAnimation();
+    public abstract void playDeathAnimation();
     
     public boolean getAttack(int damage) {
     	// Center
@@ -36,10 +38,8 @@ public abstract class Monster extends Character {
 	    // Compute the closest point on the rectangle
 		double closestX = Math.max(rectX1, Math.min(playerFootX, rectX2));
 		double closestY = Math.max(rectY1, Math.min(playerFootY, rectY2));
-	
-//	    double closestY = Math.max(rectY2, Math.min(playerFootY, rectY1));
 	    
-	    double distance = Math.sqrt(Math.pow(closestX - playerFootX, 2) + Math.pow(closestY - playerFootY, 2));
+//	    double distance = Math.sqrt(Math.pow(closestX - playerFootX, 2) + Math.pow(closestY - playerFootY, 2));
 	    
 	    
 	    double radius = 12 * GameController.getScale();
@@ -64,20 +64,14 @@ public abstract class Monster extends Character {
 	                inFront = false;
 	        }
 	        if (inFront) {
-	            if (this instanceof Slime) {  // Check if the monster is a Slime
-	                ((Slime) this).staggerAnimation();  // Trigger stagger animation
-	            }     
+	        	staggerAnimation();
 	            if (this.blood - damage <= 0) {
-	                if (this instanceof Slime) {  // Check if it's a Slime
-	                    ((Slime) this).playDeathAnimation(); // Trigger death animation
-	                    return false; // Prevent immediate removal
-	                }
+	            	playDeathAnimation();
 	                return true;
 	            } else {
 	                this.blood = this.blood - damage;
 	            }
 	        }
-
 	    }
 	    return false;
 
@@ -86,23 +80,6 @@ public abstract class Monster extends Character {
     public static boolean isInRange(double x0, double y0, double x, double y, double radius) {
         return Math.pow(x - x0, 2) + Math.pow(y - y0, 2) <= Math.pow(radius, 2);
     }
-//    private boolean isInRange(double x0, double y0, double x, double y, double radius) {
-//        double dx = x - x0;
-//        double dy = y - y0;
-//        double distanceSquared = dx * dx + dy * dy;
-//        double radiusSquared = radius * radius;
-//
-//        return distanceSquared <= radiusSquared + 0.0001; // Fix precision issues
-//    }
-    
-    
-//    public int getBlood() {
-//        return blood;
-//    }
-//
-//    public void setBlood(int blood) {
-//        this.blood = Math.max(blood, 1);
-//    }
 
     public int getDamage() {
         return damage;
