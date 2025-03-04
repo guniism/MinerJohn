@@ -185,26 +185,28 @@ public class Zombie extends Monster {
 		double zombieWidth = this.getWidth();
 		double zombieHeight = this.getHeight();
 
-		List<Zombie> zombies = GameController.getGamePane().getZombies(); // ✅ Get all zombies
+		List<Monster> zombies = GameController.getGamePane().getMonsters(); // ✅ Get all monsters
 
-		for (Zombie zombie : zombies) {
-			if (zombie == this)
-				continue; // ✅ Skip self-check
+		for (Monster zombie : zombies) {
+			if(zombie instanceof Zombie) {
+				if (zombie == this)
+					continue; // ✅ Skip self-check
 
-			double otherX = zombie.getLayoutX();
-			double otherY = zombie.getLayoutY();
+				double otherX = zombie.getLayoutX();
+				double otherY = zombie.getLayoutY();
 
-			double collisionPadding = 4 * GameController.getScale();
+				double collisionPadding = 4 * GameController.getScale();
 
-			double otherLeft = otherX + collisionPadding;
-			double otherRight = otherX + zombieWidth - collisionPadding;
-			double otherTop = otherY + collisionPadding;
-			double otherBottom = otherY + zombieHeight - collisionPadding;
+				double otherLeft = otherX + collisionPadding;
+				double otherRight = otherX + zombieWidth - collisionPadding;
+				double otherTop = otherY + collisionPadding;
+				double otherBottom = otherY + zombieHeight - collisionPadding;
 
-			// ✅ Prevent zombies from stacking on each other
-			if (nextX + zombieWidth > otherLeft && nextX < otherRight && nextY + zombieHeight > otherTop
-					&& nextY < otherBottom) {
-				return true;
+				// ✅ Prevent zombies from stacking on each other
+				if (nextX + zombieWidth > otherLeft && nextX < otherRight && nextY + zombieHeight > otherTop
+						&& nextY < otherBottom) {
+					return true;
+				}
 			}
 		}
 
