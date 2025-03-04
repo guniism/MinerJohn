@@ -52,8 +52,8 @@ public class GamePane extends Pane {
 	private Rectangle transitionScreen;
 //	private static final int ROCK_COUNT = 10; // Number of randomly placed rocks
 	private int SLIME_COUNT = 3, ZOMBIE_COUNT = 3;
-	private List<Slime> slimes;
-	private List<Zombie> zombies;
+//	private List<Slime> slimes;
+//	private List<Zombie> zombies;
 	private List<Monster> monsters;
 	private int ladderX;
 	private int ladderY;
@@ -62,10 +62,10 @@ public class GamePane extends Pane {
 		this.mother = mother;
 		this.gameMap = new Map();
 		this.player = new Player();
-		this.slimes = new ArrayList<>();
+//		this.slimes = new ArrayList<>();
 
 		this.blocks = new ArrayList<>();
-		this.zombies = new ArrayList<>();
+//		this.zombies = new ArrayList<>();
 		this.getChildren().add(this.gameMap);
 
 		this.playerCenterAbsX = this.player.getX() + this.getLayoutX() - 16 * GameController.getScale();
@@ -102,7 +102,6 @@ public class GamePane extends Pane {
 		int arraySizeH = (int) (this.gameMap.getHeight() / GameController.getScale()) / 16;
 		int arraySizeW = (int) (this.gameMap.getWidth() / GameController.getScale()) / 16;
 		this.mapBlock = new int[arraySizeH][arraySizeW];
-//		this.blockArray = new Block[arraySizeH][arraySizeW];
 
 		// Random player start position
 		int playerSpawnX = rand.nextInt((mapBlock[0].length - 3 - 1) - 3 + 1) + 3;
@@ -123,7 +122,6 @@ public class GamePane extends Pane {
 		for (int i = 0; i < mapBlock.length; i++) {
 			for (int j = 0; j < mapBlock[0].length; j++) {
 				if (i > 3 && i < mapBlock.length - 3 && j < mapBlock[0].length - 3 && j > 2) {
-//					this.blockArray[i][j] = null;
 					if (i == playerSpawnY && j == playerSpawnX) {
 						continue;
 					}
@@ -156,7 +154,6 @@ public class GamePane extends Pane {
 					block.setLayoutX(16 * GameController.getScale() * j);
 					block.setLayoutY(16 * GameController.getScale() * i);
 					this.getChildren().add(block);
-//					this.blockArray[i][j] = block;
 					blocks.add(block);
 
 				} else {
@@ -175,17 +172,13 @@ public class GamePane extends Pane {
 			System.out.println(tmp);
 		}
 
-		// random number
 		int randomLadder = rand.nextInt(blocks.size());
-//		System.out.println(randomLadder);
 		while (!(blocks.get(randomLadder) instanceof Pickaxeable)) {
 			randomLadder = rand.nextInt(blocks.size());
 		}
 		int TargetLadderX = (int) (blocks.get(randomLadder).getLayoutX() / GameController.getScale() / 16);
 		int TargetLadderY = (int) (blocks.get(randomLadder).getLayoutY() / GameController.getScale() / 16);
-//		System.out.println(blocks.get(randomLadder));
 		System.out.println(TargetLadderX + " " + TargetLadderY);
-//		System.out.println(this.mapBlock[TargetLadderY][TargetLadderX]);
 		this.ladderX = TargetLadderX;
 		this.ladderY = TargetLadderY;
 
@@ -198,7 +191,6 @@ public class GamePane extends Pane {
 //	    Slime slime = new Slime(5 * 16 * GameController.getScale(), 5 * 16 * GameController.getScale(), 2, 1, 1, player);
 //	    monsters.add(slime);
 //	    this.getChildren().add(slime);
-		
 	}
 
 	public void createLadder(int gridX, int gridY) {
@@ -459,7 +451,7 @@ public class GamePane extends Pane {
 		this.player.setY(this.player.getY() + dy);
 		this.player.setLayoutX(this.player.getX());
 		this.player.setLayoutY(this.player.getY());
-		adjustViewOrder();
+//		adjustViewOrder();
 
 		// Floating item
 //		for (FloatingItem item : floatingItems) {
@@ -512,27 +504,27 @@ public class GamePane extends Pane {
 		}
 	}
 
-	private void adjustViewOrder() {
-		for (Zombie zombie : zombies) {
-			if (player.getY() + 1 * GameController.getScale() >= zombie.getY()) {
-				player.setViewOrder(-501); // player in front
-				zombie.setViewOrder(-500); // zombie behind player
-			} else {
-				player.setViewOrder(-500); // player behind zombie
-				zombie.setViewOrder(-501); // zombie in front
-			}
-		}
-
-		for (Slime slime : slimes) {
-			if (player.getY() >= slime.getY()) {
-				player.setViewOrder(-501);
-				slime.setViewOrder(-500);
-			} else {
-				player.setViewOrder(-500);
-				slime.setViewOrder(-501);
-			}
-		}
-	}
+//	private void adjustViewOrder() {
+//		for (Zombie zombie : zombies) {
+//			if (player.getY() + 1 * GameController.getScale() >= zombie.getY()) {
+//				player.setViewOrder(-501); // player in front
+//				zombie.setViewOrder(-500); // zombie behind player
+//			} else {
+//				player.setViewOrder(-500); // player behind zombie
+//				zombie.setViewOrder(-501); // zombie in front
+//			}
+//		}
+//
+//		for (Slime slime : slimes) {
+//			if (player.getY() >= slime.getY()) {
+//				player.setViewOrder(-501);
+//				slime.setViewOrder(-500);
+//			} else {
+//				player.setViewOrder(-500);
+//				slime.setViewOrder(-501);
+//			}
+//		}
+//	}
 
 	// Collision Detection for Random Rocks
 	private boolean isColliding(double dx, double dy) {
@@ -668,12 +660,14 @@ public class GamePane extends Pane {
 						// Remove all game objects
 						getChildren().remove(getPlayer());
 						getChildren().removeAll(blocks);
-						getChildren().removeAll(slimes);
-						getChildren().removeAll(zombies);
+						getChildren().removeAll(monsters);
+//						getChildren().removeAll(slimes);
+//						getChildren().removeAll(zombies);
 
 						blocks.clear();
-						slimes.clear();
-						zombies.clear();
+						monsters.clear();
+//						slimes.clear();
+//						zombies.clear();
 
 						// Regenerate world
 //						generateRandomBlocks();
@@ -746,9 +740,9 @@ public class GamePane extends Pane {
 		this.blocks = blocks;
 	}
 
-	public List<Zombie> getZombies() {
-		return zombies;
-	}
+//	public List<Zombie> getZombies() {
+//		return zombies;
+//	}
 
 	public int[][] getMapBlock() {
 		return mapBlock;
