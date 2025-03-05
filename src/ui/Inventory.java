@@ -16,7 +16,7 @@ public class Inventory extends GridPane {
 		for (int i = 0; i < NUM_SLOTS; i++) {
 			ContainerPane button = new ContainerPane(isBag, row, i);
 
-			Player.containerGrid[row][i] = button;
+			Player.getContainerGrid()[row][i] = button;
 
 			allInvButtons.add(button);
 
@@ -28,7 +28,7 @@ public class Inventory extends GridPane {
 
 	private void handleButtonClick(ContainerPane clickedButton) {
 		if (!isBag) {
-			Player.setUsingItem(clickedButton.item);
+			Player.setUsingItem(clickedButton.getItem());
 		}
 		allInvButtons.forEach(button -> button.setContainerState(0));
 		clickedButton.setContainerState(1);

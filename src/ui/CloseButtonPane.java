@@ -49,10 +49,6 @@ public class CloseButtonPane extends Canvas {
             setState(1);
             closePane();
         });
-        this.setOnMouseReleased(e -> {
-            setState(1);
-            closePane();
-        });
     }
 
     public void setState(int newState) {
