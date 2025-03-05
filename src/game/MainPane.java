@@ -26,9 +26,9 @@ public class MainPane extends Pane {
         
         FloorNum = 1;
         createFloorBanner();
-        SpriteSheet a = new SpriteSheet("stat-ui-sprite.png", 32, 16, 0, 16, 1);       
-        a.setLayoutX(15);
-        a.setLayoutY(635);
+        SpriteSheet escIcon = new SpriteSheet("stat-ui-sprite.png", 32, 16, 0, 16, 1);       
+        escIcon.setLayoutX(15);
+        escIcon.setLayoutY(635);
         
         SpriteSheet bagIcon = new SpriteSheet("stat-ui-sprite.png", 16, 16, 0, 0, 1);      
         bagIcon.setLayoutX(995);
@@ -37,7 +37,7 @@ public class MainPane extends Pane {
         SpriteSheet icon = new SpriteSheet("stat-ui-sprite.png", 16, 17, 16, 0, 1);
         icon.setLayoutX(15);
         icon.setLayoutY(20);
-        this.getChildren().addAll(bagIcon, icon, a);
+        this.getChildren().addAll(bagIcon, icon, escIcon);
 
         this.HBar= new Bar(getGamePane().getPlayer().getMaxHealth(), 0);
         this.HBar.setLayoutX(100);
