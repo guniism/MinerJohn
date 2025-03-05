@@ -37,13 +37,13 @@ public class KeyboardController {
                 if (e.getCode() == KeyCode.E) {
                 	if(!esc) {
                 		bag = !bag;
-                    	GameController.getGamePane().createBag(bag);
+                    	GameController.getMainPane().createBag(bag);
                 	}
                 }
                 if (e.getCode() == KeyCode.ESCAPE) {
                 	if(!bag) {
 	                	esc = !esc; 
-	                	GameController.getGamePane().createEsc(esc);
+	                	GameController.getMainPane().createEsc(esc);
                 	}
                 } 
             }

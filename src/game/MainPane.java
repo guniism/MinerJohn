@@ -13,9 +13,18 @@ public class MainPane extends Pane {
     private GamePane gamePane;
     static SpriteSheet banner;
     private Bar HBar, SBar;
-    
+    private SpriteSheet inv;
+	private Bag bag;
+	private CloseButtonPane closeButton;
+	private SpriteSheet yesButton = new SpriteSheet("menu-sprite.png", 48, 16, 2, 0, 0);
+	private SpriteSheet noButton = new SpriteSheet("menu-sprite.png", 48, 16, 2, 0, 0);
+	private SpriteSheet bigBar = new SpriteSheet("menu-sprite.png", 100, 32, 0, 0, 1);
+	private PixelText bigText = new PixelText("RETURN TO MAIN MENU?");
+	private PixelText yesText = new PixelText("YES");
+	private PixelText noText = new PixelText("NO");
+	
     public MainPane() {
-        gamePane = new GamePane(this);
+        gamePane = new GamePane();
         this.getChildren().add(gamePane);
 
         List<ContainerPane> allButtons = new ArrayList<>();
@@ -26,9 +35,9 @@ public class MainPane extends Pane {
         
         FloorNum = 1;
         createFloorBanner();
-        SpriteSheet escIcon = new SpriteSheet("stat-ui-sprite.png", 32, 16, 0, 16, 1);       
-        escIcon.setLayoutX(15);
-        escIcon.setLayoutY(635);
+        SpriteSheet a = new SpriteSheet("stat-ui-sprite.png", 32, 16, 0, 16, 1);       
+        a.setLayoutX(15);
+        a.setLayoutY(635);
         
         SpriteSheet bagIcon = new SpriteSheet("stat-ui-sprite.png", 16, 16, 0, 0, 1);      
         bagIcon.setLayoutX(995);
@@ -37,7 +46,7 @@ public class MainPane extends Pane {
         SpriteSheet icon = new SpriteSheet("stat-ui-sprite.png", 16, 17, 16, 0, 1);
         icon.setLayoutX(15);
         icon.setLayoutY(20);
-        this.getChildren().addAll(bagIcon, icon, escIcon);
+        this.getChildren().addAll(bagIcon, icon, a);
 
         this.HBar= new Bar(getGamePane().getPlayer().getMaxHealth(), 0);
         this.HBar.setLayoutX(100);
@@ -47,6 +56,24 @@ public class MainPane extends Pane {
         this.SBar.setLayoutX(100);
         this.SBar.setLayoutY(65);
         this.getChildren().addAll(HBar, SBar);
+        
+        yesButton.setOnMouseEntered(e -> yesButton.setSprite("menu-sprite.png", 48, 16, 2, 1, 0));
+    	yesButton.setOnMouseExited(e -> yesButton.setSprite("menu-sprite.png", 48, 16, 2, 0, 0));
+    	yesButton.setOnMousePressed(e -> yesButton.setSprite("menu-sprite.png", 48, 16, 2, 2, 0));
+    	yesButton.setOnMouseReleased(e -> {
+    		this.getChildren().removeAll(yesButton, noButton, bigBar, bigText, yesText, noText);
+    		KeyboardController.setEsc(false);
+    		GameController.goToStartPage();
+    	});
+    	yesText.setMouseTransparent(true);
+    	noText.setMouseTransparent(true);
+    	noButton.setOnMouseEntered(e -> noButton.setSprite("menu-sprite.png", 48, 16, 2, 1, 0));
+    	noButton.setOnMouseExited(e -> noButton.setSprite("menu-sprite.png", 48, 16, 2, 0, 0));
+    	noButton.setOnMousePressed(e -> noButton.setSprite("menu-sprite.png", 48, 16, 2, 2, 0));
+    	noButton.setOnMouseReleased(e -> {
+    		this.getChildren().removeAll(yesButton, noButton, bigBar, bigText, yesText, noText);
+    		KeyboardController.setEsc(false);
+    	});
         
 //        Player.addItem(new Item(0, 0), Player.containerGrid);
         Player.containerGrid[0][0].setContainerState(1); 
@@ -72,7 +99,6 @@ public class MainPane extends Pane {
     	this.getChildren().add(floorBanner);
     }
     
-    // Getter method to retrieve the stored GamePane
     public GamePane getGamePane() {
         return gamePane;
     }
@@ -100,9 +126,65 @@ public class MainPane extends Pane {
 		return HBar;
 	}
 	
-
-
 	
+	public void createBag(boolean create) {
+		if (create) {
+			if (bag == null) {
+				bag = new Bag();
+			}
+			inv = new SpriteSheet("ingame_button.png", 55, 11, 1, 0, 0);
+			inv.setLayoutX(265);
+			inv.setLayoutY(60);
+			bag.setLayoutX(265);
+			bag.setLayoutY(115);
+			closeButton = new CloseButtonPane(this, bag, inv);
+			closeButton.setLayoutX(760);
+			closeButton.setLayoutY(60);
 
-	
+			if (!this.getChildren().contains(bag)) {
+				this.getChildren().add(bag);
+			}
+
+			this.getChildren().addAll(inv, closeButton);
+
+		} else {
+			if (this.getChildren().contains(bag)) {
+				this.getChildren().removeAll(inv, bag, closeButton);
+			}
+			bag = null;
+			inv = null;
+			closeButton = null;
+		}
+	}
+
+	public void createEsc(boolean esc) {
+		if (esc) {
+			bigBar.setLayoutX(290);
+			bigBar.setLayoutY(210);
+
+			bigText.setLayoutX(330);
+			bigText.setLayoutY(280);
+
+			yesButton.setLayoutX(290);
+			yesButton.setLayoutY(400);
+
+			noButton.setLayoutX(550);
+			noButton.setLayoutY(400);
+
+			yesText.setLayoutX(380);
+			yesText.setLayoutY(427);
+
+			noText.setLayoutX(645);
+			noText.setLayoutY(427);
+
+			if (!this.getChildren().contains(bigBar)) {
+				this.getChildren().addAll(yesButton, noButton, bigBar, bigText, yesText, noText);
+			}
+		} else {
+			if (this.getChildren().contains(bigBar)) {
+				this.getChildren().removeAll(yesButton, noButton, bigBar, bigText, yesText, noText);
+			}
+
+		}
+	}
 }
