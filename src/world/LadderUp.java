@@ -30,7 +30,7 @@ public class LadderUp extends Block implements Interactable{
 		KeyboardController.isEsc();
       	if(!KeyboardController.isBag() && !KeyboardController.isEsc()) {
         	KeyboardController.setEsc(true);
-        	GameController.getGamePane().createEsc(KeyboardController.isEsc());
+        	GameController.getMainPane().createEsc(KeyboardController.isEsc());
     	}
 	}
 
