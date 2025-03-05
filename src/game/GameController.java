@@ -51,4 +51,13 @@ public class GameController {
             StartPage.showStartPage(primaryStage);
         }
     }
+
+	public static int getScreenWidth() {
+		return SCREEN_WIDTH;
+	}
+
+	public static int getScreenHeight() {
+		return SCREEN_HEIGHT;
+	}
+    
 }

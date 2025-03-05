@@ -4,8 +4,8 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
+import utils.SpriteSheet;
 import game.GameController;
-import game.GamePane;
 import game.KeyboardController;
 import javafx.scene.Cursor;
 
@@ -14,12 +14,12 @@ public class CloseButtonPane extends Canvas {
     private int state;
     private Pane deletePane;
     private Pane motherPane;
-    private InventoryButton inv;
+    private SpriteSheet inv;
     private static final int TILE_WIDTH = 11;
     private static final int TILE_HEIGHT = 11;
     private static final int SCALE = GameController.getScale();
 
-    public CloseButtonPane(Pane motherPane, Pane deletePane,InventoryButton inv) {
+    public CloseButtonPane(Pane motherPane, Pane deletePane,SpriteSheet inv) {
         this.motherPane = motherPane;
         this.deletePane = deletePane;
         this.state = 0; 
@@ -75,7 +75,6 @@ public class CloseButtonPane extends Canvas {
         motherPane.getChildren().remove(deletePane);
         motherPane.getChildren().remove(this);
         motherPane.getChildren().remove(inv);
-        GamePane.setPass(true);
         KeyboardController.setBag(false);
     }
 }

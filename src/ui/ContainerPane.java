@@ -14,7 +14,6 @@ public class ContainerPane extends Canvas {
     private Image itemSprite;
     public int currentState;
     private boolean isBag;
-
     private static final int TILE_WIDTH = 22;
     private static final int TILE_HEIGHT = 22;
     private static final int ITEM_SIZE = 16;
@@ -58,7 +57,7 @@ public class ContainerPane extends Canvas {
         if (currentState == 1) {
             Player.setUsingItem(item);
         }
-    }
+    }	
 
     public void setContainerState(int state) {
         this.currentState = state;

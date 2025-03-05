@@ -16,11 +16,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
-import ui.Bag;
-import ui.CloseButtonPane;
-import ui.InventoryButton;
-import ui.PixelText;
-import utils.SpriteSheet;
 import world.Block;
 import world.Interactable;
 import world.Ladder;
@@ -34,37 +29,21 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-import audio.AudioController;
-
 public class GamePane extends Pane {
 	private Map gameMap;
 	private Player player;
 	private double playerCenterAbsX;
 	private double playerCenterAbsY;
-	private Pane mother;
-	private InventoryButton inv;
-	private Bag bag;
-	private CloseButtonPane closeButton;
-	private SpriteSheet yesButton = new SpriteSheet("menu-sprite.png", 48, 16, 2, 0, 0);
-	private SpriteSheet noButton = new SpriteSheet("menu-sprite.png", 48, 16, 2, 0, 0);
-	private SpriteSheet bigBar = new SpriteSheet("menu-sprite.png", 100, 32, 0, 0, 1);
-	private PixelText bigText = new PixelText("RETURN TO MAIN MENU?");
-	private PixelText yesText = new PixelText("YES");
-	private PixelText noText = new PixelText("NO");
-	private static boolean pass = true;
-	private static boolean passEsc = true;
 	private int[][] mapBlock, mapMonster;
 	private List<Block> blocks = new ArrayList<>();
 	private List<FloatingItem> floatingItems = new ArrayList<>();
 	private Rectangle transitionScreen;
-//	private static final int ROCK_COUNT = 10; // Number of randomly placed rocks
 	private int SLIME_COUNT = 3, ZOMBIE_COUNT = 3;
 	private List<Monster> monsters;
 	private int ladderX;
 	private int ladderY;
 
-	public GamePane(Pane mother) {
-		this.mother = mother;
+	public GamePane() {
 		this.gameMap = new Map();
 		this.player = new Player();
 		this.blocks = new ArrayList<>();
@@ -72,25 +51,6 @@ public class GamePane extends Pane {
 
 		this.playerCenterAbsX = this.player.getX() + this.getLayoutX() - 16 * GameController.getScale();
 		this.playerCenterAbsY = this.player.getY() + this.getLayoutY() - 8 * GameController.getScale();
-
-		yesButton.setOnMouseEntered(e -> yesButton.setSprite("menu-sprite.png", 48, 16, 2, 1, 0));
-		yesButton.setOnMouseExited(e -> yesButton.setSprite("menu-sprite.png", 48, 16, 2, 0, 0));
-		yesButton.setOnMousePressed(e -> yesButton.setSprite("menu-sprite.png", 48, 16, 2, 2, 0));
-		yesButton.setOnMouseReleased(e -> {
-			this.mother.getChildren().removeAll(yesButton, noButton, bigBar, bigText, yesText, noText);
-			KeyboardController.setEsc(false);
-			GameController.goToStartPage();
-		});
-		yesText.setMouseTransparent(true);
-		noText.setMouseTransparent(true);
-		noButton.setOnMouseEntered(e -> noButton.setSprite("menu-sprite.png", 48, 16, 2, 1, 0));
-		noButton.setOnMouseExited(e -> noButton.setSprite("menu-sprite.png", 48, 16, 2, 0, 0));
-		noButton.setOnMousePressed(e -> noButton.setSprite("menu-sprite.png", 48, 16, 2, 2, 0));
-		noButton.setOnMouseReleased(e -> {
-			this.mother.getChildren().removeAll(yesButton, noButton, bigBar, bigText, yesText, noText);
-			KeyboardController.setEsc(false);
-			passEsc = true;
-		});
 		
 		transitionScreen = new Rectangle();
 		transitionScreen.setFill(Color.BLACK);
@@ -107,17 +67,6 @@ public class GamePane extends Pane {
 
 	private void generateNextMap() {
 		Random rand = new Random();
-
-//		System.out.println(MainPane.getFloorNum());
-//		if(MainPane.getFloorNum() >= 1) {
-//			this.gameMap.setMap(3);
-//		}
-//		else if(MainPane.getFloorNum() >= 10) {
-//			this.gameMap.setMap(2);
-//		}
-//		else {
-//			this.gameMap.setMap(1);
-//		}
 		this.gameMap.setMap(rand.nextInt(3) + 1);
 
 		int arraySizeH = (int) (this.gameMap.getHeight() / GameController.getScale()) / 16;
@@ -243,10 +192,6 @@ public class GamePane extends Pane {
 			System.out.println("player is Attacking");
 			player.setAttacking(true);
 			player.attack();
-			
-			//Play attack sound
-			AudioController swordSound = new AudioController("sword_sfx");
-	        swordSound.play();
 		}
 
 		if (player.getStamina() > 0) {
@@ -255,10 +200,7 @@ public class GamePane extends Pane {
 				System.out.println("player is Mining");
 				player.setMining(true);
 				player.mine();
-				
-				//play mining sound
-				AudioController mineSound = new AudioController("rock_sfx");
-		        mineSound.play();
+
 			}
 		} else {
 			System.out.println("Player has no stamina!");
@@ -269,15 +211,8 @@ public class GamePane extends Pane {
 	private boolean interactBlockClick(MouseEvent event) {
 		for (Block block : this.blocks) {
 			if (block instanceof Interactable interactBlock) {
-				int mouseX = (int) (event.getX() / GameController.getScale() / 16);
-				int mouseY = (int) (event.getY() / GameController.getScale() / 16);
-				int x = (int) (block.getLayoutX() / GameController.getScale() / 16);
-				int y = (int) (block.getLayoutY() / GameController.getScale() / 16);
-
-//				System.out.println("X=" + mouseX + ", Y=" + mouseY);
-//				System.out.println("X=" + x + ", Y=" + y);
-
-				if (mouseX == x && mouseY == y) {
+				if (event.getX() > block.getLayoutX() && event.getX() < block.getLayoutX() + block.getWidth()
+						&& event.getY() > block.getLayoutY() && event.getY() < block.getLayoutY() + block.getHeight()) {
 					interactBlock.response();
 					return true;
 				}
@@ -369,48 +304,10 @@ public class GamePane extends Pane {
 
 	private void update() {
 		double dx = 0, dy = 0;
-
 		boolean movingDown = false;
 		boolean movingUp = false;
 		boolean movingRight = false;
 		boolean movingLeft = false;
-
-//		if (GameController.getKeyboardController().isBag() && pass) {
-////			Thread thread = new Thread(() -> {
-////				Platform.runLater(() -> {
-//			if (bag == null) {
-//				bag = new Bag();
-//			}
-//			inv = new InventoryButton();
-//			inv.setLayoutX(265);
-//			inv.setLayoutY(60);
-//			bag.setLayoutX(265);
-//			bag.setLayoutY(115);
-//			closeButton = new CloseButtonPane(mother, bag, inv);
-//			closeButton.setLayoutX(760);
-//			closeButton.setLayoutY(60);
-//
-//			// ponG บอกมา
-//			if (!mother.getChildren().contains(bag)) {
-//				mother.getChildren().add(bag);
-//			} else {
-//				System.out.println("Bag is already added!");
-//			}
-//
-//			mother.getChildren().addAll(inv, closeButton);
-//			pass = false;
-////				});
-////			});
-////			thread.start();
-//		} else if (!GameController.getKeyboardController().isBag() && !pass) {
-////			Platform.runLater(() -> {
-//			mother.getChildren().removeAll(inv, bag, closeButton);
-//			bag = null;
-//			inv = null;
-//			closeButton = null;
-//			pass = true;
-////			});
-//		}
 
 		if (player.canMove()) {
 			if (GameController.getKeyboardController().isMoveUp()) {
@@ -532,38 +429,37 @@ public class GamePane extends Pane {
 	}
 
 	private void adjustMonsterViewOrder() {
-	    for (Monster monster : getMonsters()) {
-	        if (monster instanceof Zombie) {
-	            // For Zombies, add an extra offset (1 * scale) to the player's Y position
-	            if (player.getY() + 16 * GameController.getScale() >= monster.getY()) {
-	                player.setViewOrder(-501);  // Player in front
-	                monster.setViewOrder(-500); // Zombie behind
-	            } else {
-	                player.setViewOrder(-500);  // Player behind
-	                monster.setViewOrder(-501); // Zombie in front
-	            }
-	        } else if (monster instanceof Slime) {
-	            // For Slimes, use a direct comparison
-	            if (player.getY() + 16 * GameController.getScale() >= monster.getY()) {
-	                player.setViewOrder(-501);  // Player in front
-	                monster.setViewOrder(-500); // Slime behind
-	            } else {
-	                player.setViewOrder(-500);  // Player behind
-	                monster.setViewOrder(-501); // Slime in front
-	            }
-	        } else {
-	            // For other monsters, you can define a default behavior
-	            if (player.getY() >= monster.getY()) {
-	                player.setViewOrder(-501);
-	                monster.setViewOrder(-500);
-	            } else {
-	                player.setViewOrder(-500);
-	                monster.setViewOrder(-501);
-	            }
-	        }
-	    }
+		for (Monster monster : this.monsters) {
+			if (monster instanceof Zombie) {
+				// For Zombies, add an extra offset (1 * scale) to the player's Y position
+				if (player.getY() + 16 * GameController.getScale() >= monster.getY()) {
+					player.setViewOrder(-501); // Player in front
+					monster.setViewOrder(-500); // Zombie behind
+				} else {
+					player.setViewOrder(-500); // Player behind
+					monster.setViewOrder(-501); // Zombie in front
+				}
+			} else if (monster instanceof Slime) {
+				// For Slimes, use a direct comparison
+				if (player.getY() + 16 * GameController.getScale() >= monster.getY()) {
+					player.setViewOrder(-501); // Player in front
+					monster.setViewOrder(-500); // Slime behind
+				} else {
+					player.setViewOrder(-500); // Player behind
+					monster.setViewOrder(-501); // Slime in front
+				}
+			} else {
+				// For other monsters, you can define a default behavior
+				if (player.getY() >= monster.getY()) {
+					player.setViewOrder(-501);
+					monster.setViewOrder(-500);
+				} else {
+					player.setViewOrder(-500);
+					monster.setViewOrder(-501);
+				}
+			}
+		}
 	}
-
 
 	// Collision Detection for Random Rocks
 	private boolean isColliding(double dx, double dy) {
@@ -738,13 +634,6 @@ public class GamePane extends Pane {
 		resetSequence.play();
 	}
 
-	public static boolean isPass() {
-		return pass;
-	}
-
-	public static void setPass(boolean pass) {
-		GamePane.pass = pass;
-	}
 
 	public List<Block> getBlocks() {
 		return blocks;
@@ -777,67 +666,6 @@ public class GamePane extends Pane {
 	public Player getPlayer() {
 		return player;
 	}
-	
-	public void createBag(boolean create) {
-		if (create) {
-			if (bag == null) {
-				bag = new Bag();
-			}
-			inv = new InventoryButton();
-			inv.setLayoutX(265);
-			inv.setLayoutY(60);
-			bag.setLayoutX(265);
-			bag.setLayoutY(115);
-			closeButton = new CloseButtonPane(mother, bag, inv);
-			closeButton.setLayoutX(760);
-			closeButton.setLayoutY(60);
 
-			if (!mother.getChildren().contains(bag)) {
-				mother.getChildren().add(bag);
-			}
-
-			mother.getChildren().addAll(inv, closeButton);
-
-		} else {
-			if(mother.getChildren().contains(bag)) {
-				mother.getChildren().removeAll(inv, bag, closeButton);
-			}
-			bag = null;
-			inv = null;
-			closeButton = null;
-		}
-	}
-	
-	public void createEsc(boolean esc) {
-		if (esc) {
-			bigBar.setLayoutX(290);
-			bigBar.setLayoutY(210);
-
-			bigText.setLayoutX(330);
-			bigText.setLayoutY(280);
-
-			yesButton.setLayoutX(290);
-			yesButton.setLayoutY(400);
-
-			noButton.setLayoutX(550);
-			noButton.setLayoutY(400);
-
-			yesText.setLayoutX(380);
-			yesText.setLayoutY(427);
-
-			noText.setLayoutX(645);
-			noText.setLayoutY(427);
-
-			if(!mother.getChildren().contains(bigBar)) {
-				mother.getChildren().addAll(yesButton, noButton, bigBar, bigText, yesText, noText);
-			}
-		}
-		else {
-			if(mother.getChildren().contains(bigBar)) {
-				this.mother.getChildren().removeAll(yesButton, noButton, bigBar, bigText, yesText, noText);
-			}
-			
-		}
-	}
 
 }
