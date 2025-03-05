@@ -33,24 +33,15 @@ public class Ladder extends Block implements Interactable {
 	@Override
 	public void response() {
 		// TODO Auto-generated method stub
-//		System.out.println("hii");
 		if (!isClicked) {
-//			System.out.println("clicked");
 			int playerFootGridX = (int) ((GameController.getGamePane().getPlayer().getX()
 					+ (8 + 24 - 8) * GameController.getScale()) / GameController.getScale() / 16);
 			int playerFootGridY = (int) ((GameController.getGamePane().getPlayer().getY()
 					+ (32) * GameController.getScale()) / GameController.getScale() / 16);
 
-			System.out.println(playerFootGridX + " " + playerFootGridY);
-			System.out.println(GameController.getGamePane().getLadderX() + " " + GameController.getGamePane().getLadderY());
 
-//			if (Math.abs(playerFootGridX - GameController.getGamePane().getLadderX()) <= 1
-//					&& Math.abs(playerFootGridY - GameController.getGamePane().getLadderY()) <= 1) {
 			if (Math.abs(playerFootGridX - GameController.getGamePane().getLadderX()) <= 1
 			&& Math.abs(playerFootGridY - GameController.getGamePane().getLadderY()) <= 1) {
-				    // Player's foot is near OR exactly aligned with the ladder
-				
-
 				
 				GameController.getGamePane().getPlayer().setMining(false);
 				GameController.getGamePane().getPlayer().setCanMove(false);
