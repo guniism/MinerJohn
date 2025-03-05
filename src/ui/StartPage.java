@@ -48,7 +48,7 @@ public class StartPage extends StackPane {
     	String path = ClassLoader.getSystemResource("start_bg.png").toString();
 		Image bg = new Image(path);
         StartPage startPage = new StartPage(primaryStage);
-        Scene startScene = new Scene(startPage, bg.getWidth() * GameController.getScale(), bg.getHeight() * GameController.getScale());
+        Scene startScene = new Scene(startPage, GameController.getScreenWidth(), GameController.getScreenHeight());
         primaryStage.setScene(startScene);
         primaryStage.show();
     }

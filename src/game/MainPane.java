@@ -2,10 +2,7 @@ package game;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle.Control;
-
 import javafx.scene.layout.Pane;
-import javafx.scene.text.Text;
 import ui.*;
 import utils.SpriteSheet;
 import entities.Player;
@@ -13,12 +10,11 @@ import entities.Player;
 public class MainPane extends Pane {
     private static int FloorNum;
     private static PixelText floorText;
-    private GamePane gamePane; // Store the GamePane here
+    private GamePane gamePane;
     static SpriteSheet banner;
     private Bar HBar, SBar;
     
     public MainPane() {
-        // Create and store the GamePane
         gamePane = new GamePane(this);
         this.getChildren().add(gamePane);
 
@@ -30,16 +26,18 @@ public class MainPane extends Pane {
         
         FloorNum = 1;
         createFloorBanner();
-        createEscBanner();
+        SpriteSheet a = new SpriteSheet("stat-ui-sprite.png", 32, 16, 0, 16, 1);       
+        a.setLayoutX(15);
+        a.setLayoutY(635);
         
-        BagIcon bagIcon = new BagIcon();
+        SpriteSheet bagIcon = new SpriteSheet("stat-ui-sprite.png", 16, 16, 0, 0, 1);      
         bagIcon.setLayoutX(995);
         bagIcon.setLayoutY(635);
         
         SpriteSheet icon = new SpriteSheet("stat-ui-sprite.png", 16, 17, 16, 0, 1);
         icon.setLayoutX(15);
         icon.setLayoutY(20);
-        this.getChildren().addAll(bagIcon, icon);
+        this.getChildren().addAll(bagIcon, icon, a);
 
         this.HBar= new Bar(getGamePane().getPlayer().getMaxHealth(), 0);
         this.HBar.setLayoutX(100);
@@ -74,22 +72,6 @@ public class MainPane extends Pane {
     	this.getChildren().add(floorBanner);
     }
     
-    private void createEscBanner() {
-    	Pane EscBanner = new Pane();
-        banner = new SpriteSheet("stat-ui-sprite.png", 16, 11, 33, 0, 1);
-
-        PixelText escText = new PixelText("ESC");
-        escText.setText("ESC");
-    	
-        escText.setLayoutX((banner.getWidth() / 2) - escText.getWidth() / 2);
-        escText.setLayoutY((banner.getHeight() / 2) - escText.getHeight() / 2);
-    	EscBanner.setLayoutX(0);
-    	EscBanner.setLayoutY(665);
-    	EscBanner.getChildren().add(banner);
-    	EscBanner.getChildren().add(escText);
-   
-    	this.getChildren().add(EscBanner);
-    }
     // Getter method to retrieve the stored GamePane
     public GamePane getGamePane() {
         return gamePane;

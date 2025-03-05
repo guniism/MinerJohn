@@ -89,7 +89,7 @@ public class GamePane extends Pane {
 			KeyboardController.setEsc(false);
 			passEsc = true;
 		});
-		
+
 		transitionScreen = new Rectangle();
 		transitionScreen.setFill(Color.BLACK);
 		transitionScreen.setOpacity(0);
@@ -260,15 +260,8 @@ public class GamePane extends Pane {
 	private boolean interactBlockClick(MouseEvent event) {
 		for (Block block : this.blocks) {
 			if (block instanceof Interactable interactBlock) {
-				int mouseX = (int) (event.getX() / GameController.getScale() / 16);
-				int mouseY = (int) (event.getY() / GameController.getScale() / 16);
-				int x = (int) (block.getLayoutX() / GameController.getScale() / 16);
-				int y = (int) (block.getLayoutY() / GameController.getScale() / 16);
-
-//				System.out.println("X=" + mouseX + ", Y=" + mouseY);
-//				System.out.println("X=" + x + ", Y=" + y);
-
-				if (mouseX == x && mouseY == y) {
+				if (event.getX() > block.getLayoutX() && event.getX() < block.getLayoutX() + block.getWidth()
+						&& event.getY() > block.getLayoutY() && event.getY() < block.getLayoutY() + block.getHeight()) {
 					interactBlock.response();
 					return true;
 				}
@@ -360,48 +353,10 @@ public class GamePane extends Pane {
 
 	private void update() {
 		double dx = 0, dy = 0;
-
 		boolean movingDown = false;
 		boolean movingUp = false;
 		boolean movingRight = false;
 		boolean movingLeft = false;
-
-//		if (GameController.getKeyboardController().isBag() && pass) {
-////			Thread thread = new Thread(() -> {
-////				Platform.runLater(() -> {
-//			if (bag == null) {
-//				bag = new Bag();
-//			}
-//			inv = new InventoryButton();
-//			inv.setLayoutX(265);
-//			inv.setLayoutY(60);
-//			bag.setLayoutX(265);
-//			bag.setLayoutY(115);
-//			closeButton = new CloseButtonPane(mother, bag, inv);
-//			closeButton.setLayoutX(760);
-//			closeButton.setLayoutY(60);
-//
-//			// ponG บอกมา
-//			if (!mother.getChildren().contains(bag)) {
-//				mother.getChildren().add(bag);
-//			} else {
-//				System.out.println("Bag is already added!");
-//			}
-//
-//			mother.getChildren().addAll(inv, closeButton);
-//			pass = false;
-////				});
-////			});
-////			thread.start();
-//		} else if (!GameController.getKeyboardController().isBag() && !pass) {
-////			Platform.runLater(() -> {
-//			mother.getChildren().removeAll(inv, bag, closeButton);
-//			bag = null;
-//			inv = null;
-//			closeButton = null;
-//			pass = true;
-////			});
-//		}
 
 		if (player.canMove()) {
 			if (GameController.getKeyboardController().isMoveUp()) {
@@ -523,38 +478,37 @@ public class GamePane extends Pane {
 	}
 
 	private void adjustMonsterViewOrder() {
-	    for (Monster monster : getMonsters()) {
-	        if (monster instanceof Zombie) {
-	            // For Zombies, add an extra offset (1 * scale) to the player's Y position
-	            if (player.getY() + 16 * GameController.getScale() >= monster.getY()) {
-	                player.setViewOrder(-501);  // Player in front
-	                monster.setViewOrder(-500); // Zombie behind
-	            } else {
-	                player.setViewOrder(-500);  // Player behind
-	                monster.setViewOrder(-501); // Zombie in front
-	            }
-	        } else if (monster instanceof Slime) {
-	            // For Slimes, use a direct comparison
-	            if (player.getY() + 16 * GameController.getScale() >= monster.getY()) {
-	                player.setViewOrder(-501);  // Player in front
-	                monster.setViewOrder(-500); // Slime behind
-	            } else {
-	                player.setViewOrder(-500);  // Player behind
-	                monster.setViewOrder(-501); // Slime in front
-	            }
-	        } else {
-	            // For other monsters, you can define a default behavior
-	            if (player.getY() >= monster.getY()) {
-	                player.setViewOrder(-501);
-	                monster.setViewOrder(-500);
-	            } else {
-	                player.setViewOrder(-500);
-	                monster.setViewOrder(-501);
-	            }
-	        }
-	    }
+		for (Monster monster : this.monsters) {
+			if (monster instanceof Zombie) {
+				// For Zombies, add an extra offset (1 * scale) to the player's Y position
+				if (player.getY() + 16 * GameController.getScale() >= monster.getY()) {
+					player.setViewOrder(-501); // Player in front
+					monster.setViewOrder(-500); // Zombie behind
+				} else {
+					player.setViewOrder(-500); // Player behind
+					monster.setViewOrder(-501); // Zombie in front
+				}
+			} else if (monster instanceof Slime) {
+				// For Slimes, use a direct comparison
+				if (player.getY() + 16 * GameController.getScale() >= monster.getY()) {
+					player.setViewOrder(-501); // Player in front
+					monster.setViewOrder(-500); // Slime behind
+				} else {
+					player.setViewOrder(-500); // Player behind
+					monster.setViewOrder(-501); // Slime in front
+				}
+			} else {
+				// For other monsters, you can define a default behavior
+				if (player.getY() >= monster.getY()) {
+					player.setViewOrder(-501);
+					monster.setViewOrder(-500);
+				} else {
+					player.setViewOrder(-500);
+					monster.setViewOrder(-501);
+				}
+			}
+		}
 	}
-
 
 	// Collision Detection for Random Rocks
 	private boolean isColliding(double dx, double dy) {
@@ -768,7 +722,7 @@ public class GamePane extends Pane {
 	public Player getPlayer() {
 		return player;
 	}
-	
+
 	public void createBag(boolean create) {
 		if (create) {
 			if (bag == null) {
@@ -790,7 +744,7 @@ public class GamePane extends Pane {
 			mother.getChildren().addAll(inv, closeButton);
 
 		} else {
-			if(mother.getChildren().contains(bag)) {
+			if (mother.getChildren().contains(bag)) {
 				mother.getChildren().removeAll(inv, bag, closeButton);
 			}
 			bag = null;
@@ -798,7 +752,7 @@ public class GamePane extends Pane {
 			closeButton = null;
 		}
 	}
-	
+
 	public void createEsc(boolean esc) {
 		if (esc) {
 			bigBar.setLayoutX(290);
@@ -819,15 +773,14 @@ public class GamePane extends Pane {
 			noText.setLayoutX(645);
 			noText.setLayoutY(427);
 
-			if(!mother.getChildren().contains(bigBar)) {
+			if (!mother.getChildren().contains(bigBar)) {
 				mother.getChildren().addAll(yesButton, noButton, bigBar, bigText, yesText, noText);
 			}
-		}
-		else {
-			if(mother.getChildren().contains(bigBar)) {
+		} else {
+			if (mother.getChildren().contains(bigBar)) {
 				this.mother.getChildren().removeAll(yesButton, noButton, bigBar, bigText, yesText, noText);
 			}
-			
+
 		}
 	}
 
