@@ -1,14 +1,13 @@
 package world;
 
 import game.GameController;
-import game.KeyboardController;
 import javafx.scene.canvas.GraphicsContext;
 
 public class LadderUp extends Block implements Interactable{
 
 	public LadderUp() {
 		super("block-sprite.png");
-		this.setWidth(16 * GameController.getScale());
+		
 		this.setHeight(48 * GameController.getScale());
 		render(this.getGraphicsContext2D());
 	}
@@ -27,11 +26,7 @@ public class LadderUp extends Block implements Interactable{
 	@Override
 	public void response() {
 		// TODO Auto-generated method stub
-		KeyboardController.isEsc();
-      	if(!KeyboardController.isBag() && !KeyboardController.isEsc()) {
-        	KeyboardController.setEsc(true);
-        	GameController.getMainPane().createEsc(KeyboardController.isEsc());
-    	}
+		
 	}
 
 }

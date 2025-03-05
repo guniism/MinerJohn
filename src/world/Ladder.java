@@ -10,8 +10,6 @@ public class Ladder extends Block implements Interactable {
 	public Ladder() {
 		super("block-sprite.png");
 		this.isClicked = false;
-		this.setWidth(16 * GameController.getScale());
-		this.setHeight(16 * GameController.getScale());
 //		this.setOnMouseClicked(event -> response());
 		render(this.getGraphicsContext2D());
 	}

@@ -35,16 +35,12 @@ public class KeyboardController {
                     moveRight = true;
                 }
                 if (e.getCode() == KeyCode.E) {
-                	if(!esc) {
-                		bag = !bag;
-                    	GameController.getMainPane().createBag(bag);
-                	}
+                	bag = !bag;
+                	GameController.getGamePane().createBag(bag);
                 }
                 if (e.getCode() == KeyCode.ESCAPE) {
-                	if(!bag) {
-	                	esc = !esc; 
-	                	GameController.getMainPane().createEsc(esc);
-                	}
+                	esc = !esc; 
+                	GameController.getGamePane().createEsc(esc);
                 } 
             }
         });
@@ -116,7 +112,7 @@ public class KeyboardController {
 		KeyboardController.bag = bag;
 	}
 
-	public static boolean isBag() {
+	public boolean isBag() {
 		return bag;
 	}
 	
@@ -124,7 +120,7 @@ public class KeyboardController {
 		KeyboardController.esc = esc;
 	}
 
-	public static boolean isEsc() {
+	public boolean isEsc() {
 		return esc;
 	}
 }

@@ -3,6 +3,7 @@ package ui;
 import game.GameController;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
@@ -44,8 +45,10 @@ public class StartPage extends StackPane {
     }
 
     public static void showStartPage(Stage primaryStage) {
+    	String path = ClassLoader.getSystemResource("start_bg.png").toString();
+		Image bg = new Image(path);
         StartPage startPage = new StartPage(primaryStage);
-        Scene startScene = new Scene(startPage, GameController.getScreenWidth(), GameController.getScreenHeight());
+        Scene startScene = new Scene(startPage, bg.getWidth() * GameController.getScale(), bg.getHeight() * GameController.getScale());
         primaryStage.setScene(startScene);
         primaryStage.show();
     }
