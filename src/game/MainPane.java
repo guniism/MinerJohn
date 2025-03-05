@@ -30,6 +30,7 @@ public class MainPane extends Pane {
         
         FloorNum = 1;
         createFloorBanner();
+        createEscBanner();
         
         BagIcon bagIcon = new BagIcon();
         bagIcon.setLayoutX(995);
@@ -49,9 +50,11 @@ public class MainPane extends Pane {
         this.SBar.setLayoutY(65);
         this.getChildren().addAll(HBar, SBar);
         
-//        Player.addItem(new Item(0, 0), Player.containerGrid);       
+//        Player.addItem(new Item(0, 0), Player.containerGrid);
+        Player.containerGrid[0][0].setContainerState(1); 
         Player.addItem(ItemRegistry.getItemById("Sword"), Player.containerGrid);
         Player.addItem(ItemRegistry.getItemById("Pickaxe"), Player.containerGrid);
+        Player.setUsingItem(Player.containerGrid[0][0].item);
     }
     
     private void createFloorBanner() {
@@ -71,6 +74,22 @@ public class MainPane extends Pane {
     	this.getChildren().add(floorBanner);
     }
     
+    private void createEscBanner() {
+    	Pane EscBanner = new Pane();
+        banner = new SpriteSheet("stat-ui-sprite.png", 16, 11, 33, 0, 1);
+
+        PixelText escText = new PixelText("ESC");
+        escText.setText("ESC");
+    	
+        escText.setLayoutX((banner.getWidth() / 2) - escText.getWidth() / 2);
+        escText.setLayoutY((banner.getHeight() / 2) - escText.getHeight() / 2);
+    	EscBanner.setLayoutX(0);
+    	EscBanner.setLayoutY(665);
+    	EscBanner.getChildren().add(banner);
+    	EscBanner.getChildren().add(escText);
+   
+    	this.getChildren().add(EscBanner);
+    }
     // Getter method to retrieve the stored GamePane
     public GamePane getGamePane() {
         return gamePane;

@@ -24,7 +24,7 @@ public class StartPage extends StackPane {
         this.setTranslateY(-23);
         MainMenuButton newGameButton = new MainMenuButton(0);
         newGameButton.setOnMouseClicked(e -> {
-            GameController.setUpScene();
+            GameController.setUpScene(primaryStage);
             primaryStage.setScene(GameController.getScene());
         });
 
@@ -53,4 +53,3 @@ public class StartPage extends StackPane {
         primaryStage.show();
     }
 }
-

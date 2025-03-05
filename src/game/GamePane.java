@@ -19,6 +19,8 @@ import javafx.util.Duration;
 import ui.Bag;
 import ui.CloseButtonPane;
 import ui.InventoryButton;
+import ui.PixelText;
+import utils.SpriteSheet;
 import world.Block;
 import world.Interactable;
 import world.Ladder;
@@ -41,9 +43,16 @@ public class GamePane extends Pane {
 	private InventoryButton inv;
 	private Bag bag;
 	private CloseButtonPane closeButton;
+	private SpriteSheet yesButton = new SpriteSheet("menu-sprite.png", 48, 16, 2, 0, 0);
+	private SpriteSheet noButton = new SpriteSheet("menu-sprite.png", 48, 16, 2, 0, 0);
+	private SpriteSheet bigBar = new SpriteSheet("menu-sprite.png", 100, 32, 0, 0, 1);
+	private PixelText bigText = new PixelText("RETURN TO MAIN MENU?");
+	private PixelText yesText = new PixelText("YES");
+	private PixelText noText = new PixelText("NO");
 	private static boolean pass = true;
+	private static boolean passEsc = true;
 	private int[][] mapBlock, mapMonster;
-	private List<Block> blocks = new ArrayList<>(); // Store all rocks
+	private List<Block> blocks = new ArrayList<>();
 	private List<FloatingItem> floatingItems = new ArrayList<>();
 	private Rectangle transitionScreen;
 //	private static final int ROCK_COUNT = 10; // Number of randomly placed rocks
@@ -62,6 +71,25 @@ public class GamePane extends Pane {
 		this.playerCenterAbsX = this.player.getX() + this.getLayoutX() - 16 * GameController.getScale();
 		this.playerCenterAbsY = this.player.getY() + this.getLayoutY() - 8 * GameController.getScale();
 
+		yesButton.setOnMouseEntered(e -> yesButton.setSprite("menu-sprite.png", 48, 16, 2, 1, 0));
+		yesButton.setOnMouseExited(e -> yesButton.setSprite("menu-sprite.png", 48, 16, 2, 0, 0));
+		yesButton.setOnMousePressed(e -> yesButton.setSprite("menu-sprite.png", 48, 16, 2, 2, 0));
+		yesButton.setOnMouseReleased(e -> {
+			this.mother.getChildren().removeAll(yesButton, noButton, bigBar, bigText, yesText, noText);
+			KeyboardController.setEsc(false);
+			GameController.goToStartPage();
+		});
+		yesText.setMouseTransparent(true);
+		noText.setMouseTransparent(true);
+		noButton.setOnMouseEntered(e -> noButton.setSprite("menu-sprite.png", 48, 16, 2, 1, 0));
+		noButton.setOnMouseExited(e -> noButton.setSprite("menu-sprite.png", 48, 16, 2, 0, 0));
+		noButton.setOnMousePressed(e -> noButton.setSprite("menu-sprite.png", 48, 16, 2, 2, 0));
+		noButton.setOnMouseReleased(e -> {
+			this.mother.getChildren().removeAll(yesButton, noButton, bigBar, bigText, yesText, noText);
+			KeyboardController.setEsc(false);
+			passEsc = true;
+		});
+		
 		transitionScreen = new Rectangle();
 		transitionScreen.setFill(Color.BLACK);
 		transitionScreen.setOpacity(0);
@@ -338,42 +366,42 @@ public class GamePane extends Pane {
 		boolean movingRight = false;
 		boolean movingLeft = false;
 
-		if (GameController.getKeyboardController().isBag() && pass) {
-//			Thread thread = new Thread(() -> {
-//				Platform.runLater(() -> {
-			if (bag == null) {
-				bag = new Bag();
-			}
-			inv = new InventoryButton();
-			inv.setLayoutX(265);
-			inv.setLayoutY(60);
-			bag.setLayoutX(265);
-			bag.setLayoutY(115);
-			closeButton = new CloseButtonPane(mother, bag, inv);
-			closeButton.setLayoutX(760);
-			closeButton.setLayoutY(60);
-
-			// ponG บอกมา
-			if (!mother.getChildren().contains(bag)) {
-				mother.getChildren().add(bag);
-			} else {
-				System.out.println("Bag is already added!");
-			}
-
-			mother.getChildren().addAll(inv, closeButton);
-			pass = false;
-//				});
-//			});
-//			thread.start();
-		} else if (!GameController.getKeyboardController().isBag() && !pass) {
-//			Platform.runLater(() -> {
-			mother.getChildren().removeAll(inv, bag, closeButton);
-			bag = null;
-			inv = null;
-			closeButton = null;
-			pass = true;
-//			});
-		}
+//		if (GameController.getKeyboardController().isBag() && pass) {
+////			Thread thread = new Thread(() -> {
+////				Platform.runLater(() -> {
+//			if (bag == null) {
+//				bag = new Bag();
+//			}
+//			inv = new InventoryButton();
+//			inv.setLayoutX(265);
+//			inv.setLayoutY(60);
+//			bag.setLayoutX(265);
+//			bag.setLayoutY(115);
+//			closeButton = new CloseButtonPane(mother, bag, inv);
+//			closeButton.setLayoutX(760);
+//			closeButton.setLayoutY(60);
+//
+//			// ponG บอกมา
+//			if (!mother.getChildren().contains(bag)) {
+//				mother.getChildren().add(bag);
+//			} else {
+//				System.out.println("Bag is already added!");
+//			}
+//
+//			mother.getChildren().addAll(inv, closeButton);
+//			pass = false;
+////				});
+////			});
+////			thread.start();
+//		} else if (!GameController.getKeyboardController().isBag() && !pass) {
+////			Platform.runLater(() -> {
+//			mother.getChildren().removeAll(inv, bag, closeButton);
+//			bag = null;
+//			inv = null;
+//			closeButton = null;
+//			pass = true;
+////			});
+//		}
 
 		if (player.canMove()) {
 			if (GameController.getKeyboardController().isMoveUp()) {
@@ -739,6 +767,68 @@ public class GamePane extends Pane {
 
 	public Player getPlayer() {
 		return player;
+	}
+	
+	public void createBag(boolean create) {
+		if (create) {
+			if (bag == null) {
+				bag = new Bag();
+			}
+			inv = new InventoryButton();
+			inv.setLayoutX(265);
+			inv.setLayoutY(60);
+			bag.setLayoutX(265);
+			bag.setLayoutY(115);
+			closeButton = new CloseButtonPane(mother, bag, inv);
+			closeButton.setLayoutX(760);
+			closeButton.setLayoutY(60);
+
+			if (!mother.getChildren().contains(bag)) {
+				mother.getChildren().add(bag);
+			}
+
+			mother.getChildren().addAll(inv, closeButton);
+
+		} else {
+			if(mother.getChildren().contains(bag)) {
+				mother.getChildren().removeAll(inv, bag, closeButton);
+			}
+			bag = null;
+			inv = null;
+			closeButton = null;
+		}
+	}
+	
+	public void createEsc(boolean esc) {
+		if (esc) {
+			bigBar.setLayoutX(290);
+			bigBar.setLayoutY(210);
+
+			bigText.setLayoutX(330);
+			bigText.setLayoutY(280);
+
+			yesButton.setLayoutX(290);
+			yesButton.setLayoutY(400);
+
+			noButton.setLayoutX(550);
+			noButton.setLayoutY(400);
+
+			yesText.setLayoutX(380);
+			yesText.setLayoutY(427);
+
+			noText.setLayoutX(645);
+			noText.setLayoutY(427);
+
+			if(!mother.getChildren().contains(bigBar)) {
+				mother.getChildren().addAll(yesButton, noButton, bigBar, bigText, yesText, noText);
+			}
+		}
+		else {
+			if(mother.getChildren().contains(bigBar)) {
+				this.mother.getChildren().removeAll(yesButton, noButton, bigBar, bigText, yesText, noText);
+			}
+			
+		}
 	}
 
 }
