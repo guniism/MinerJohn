@@ -54,6 +54,10 @@ public class ContainerPane extends Canvas {
         } else {
             setContainerState(0);
         }
+        
+        if (currentState == 1) {
+            Player.setUsingItem(item);
+        }
     }
 
     public void setContainerState(int state) {
@@ -68,6 +72,10 @@ public class ContainerPane extends Canvas {
             itemSprite = new Image(itemPath);
         } else {
             itemSprite = null;
+        }
+        
+        if (currentState == 1) {
+            Player.setUsingItem(item);
         }
     }
 
@@ -136,6 +144,10 @@ public class ContainerPane extends Canvas {
 
             this.loadItemFromInventory();
             this.drawContainer();
+            
+            if (currentState == 1) {
+                Player.setUsingItem(item);
+            }
         }
         event.setDropCompleted(true);
         event.consume();

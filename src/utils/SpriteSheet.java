@@ -6,38 +6,47 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
 public class SpriteSheet extends Canvas {
+    private Image spriteSheet;
+    private int tileWidth, tileHeight;
 
-	public SpriteSheet(String filename, int tileWidth, int tileHeight, int r, int c, int mode) {
-//		mode x y
-//		0 = row col
-//		1 = srcX srcY
-		String path = ClassLoader.getSystemResource(filename).toString();
-		Image spriteSheet = new Image(path);
+    public SpriteSheet(String filename, int tileWidth, int tileHeight, int r, int c, int mode) {
+        this.tileWidth = tileWidth;
+        this.tileHeight = tileHeight;
 
-//        int tileWidth = 48;
-//        int tileHeight = 17;
+        String path = ClassLoader.getSystemResource(filename).toString();
+        this.spriteSheet = new Image(path);
 
-		this.setWidth(tileWidth * GameController.getScale());
-		this.setHeight(tileHeight * GameController.getScale());
+        this.setWidth(tileWidth * GameController.getScale());
+        this.setHeight(tileHeight * GameController.getScale());
 
-		GraphicsContext gc = this.getGraphicsContext2D();
-		gc.setImageSmoothing(false);
-		gc.scale(GameController.getScale(), GameController.getScale());
+        GraphicsContext gc = this.getGraphicsContext2D();
+        gc.setImageSmoothing(false);
+        gc.scale(GameController.getScale(), GameController.getScale());
 
-//        int col = 0; // ตำแหน่งเป็น Grid
-//        int row = 0;
+        drawSprite(r, c, mode);
+    }
 
-		double srcX = c;
-		double srcY = r;
+    public void setSprite(String filename, int tileWidth, int tileHeight, int r, int c, int mode) {
+        String path = ClassLoader.getSystemResource(filename).toString();
+        if (!this.spriteSheet.getUrl().equals(path)) {
+            this.spriteSheet = new Image(path);
+        }
 
-		if (mode == 0) {
-			srcX *= tileWidth;
-			srcY *= tileHeight;
-		}
+        drawSprite(r, c, mode);
+    }
 
-		double destX = 0;
-		double destY = 0;
+    private void drawSprite(int r, int c, int mode) {
+        GraphicsContext gc = this.getGraphicsContext2D();
+        gc.clearRect(0, 0, getWidth(), getHeight());
 
-		gc.drawImage(spriteSheet, srcX, srcY, tileWidth, tileHeight, destX, destY, tileWidth, tileHeight);
-	}
+        double srcX = c;
+        double srcY = r;
+
+        if (mode == 0) {
+            srcX *= tileWidth;
+            srcY *= tileHeight;
+        }
+
+        gc.drawImage(spriteSheet, srcX, srcY, tileWidth, tileHeight, 0, 0, tileWidth, tileHeight);
+    }
 }

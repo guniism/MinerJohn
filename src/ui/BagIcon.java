@@ -24,7 +24,6 @@ public class BagIcon extends Canvas {
 
         drawBag();
 
-        this.setOnMouseClicked(this::toggleBag);
     }
 
     private void drawBag() {
@@ -39,11 +38,4 @@ public class BagIcon extends Canvas {
                      0, 0, TILE_WIDTH * SCALE, TILE_HEIGHT * SCALE);
     }
 
-    private void toggleBag(MouseEvent event) {
-        Platform.runLater(() -> {
-            boolean isBagOpen = GameController.getKeyboardController().isBag();
-            GameController.getKeyboardController();
-			KeyboardController.setBag(!isBagOpen); 
-        });
-    }
 }

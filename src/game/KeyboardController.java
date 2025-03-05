@@ -12,6 +12,7 @@ public class KeyboardController {
     private boolean moveRight = false;
     private boolean attacking = false;
     private static boolean bag = false;
+    private static boolean esc = false;
     public KeyboardController(){
         keyboardSetup();
         mouseSetup();
@@ -34,8 +35,13 @@ public class KeyboardController {
                     moveRight = true;
                 }
                 if (e.getCode() == KeyCode.E) {
-                	bag = !bag;      	
-                }             
+                	bag = !bag;
+                	GameController.getGamePane().createBag(bag);
+                }
+                if (e.getCode() == KeyCode.ESCAPE) {
+                	esc = !esc; 
+                	GameController.getGamePane().createEsc(esc);
+                } 
             }
         });
         
@@ -54,6 +60,7 @@ public class KeyboardController {
                 if (e.getCode() == KeyCode.D) {
                     moveRight = false;
                 }
+
             }
         });
     }
@@ -107,5 +114,13 @@ public class KeyboardController {
 
 	public boolean isBag() {
 		return bag;
+	}
+	
+	public static void setEsc(boolean esc) {
+		KeyboardController.esc = esc;
+	}
+
+	public boolean isEsc() {
+		return esc;
 	}
 }

@@ -1,723 +1,663 @@
-package game;
-
-import entities.Slime;
-import entities.Zombie;
-import entities.FloatingItem;
-import entities.Monster;
-import entities.Player;
-import javafx.animation.AnimationTimer;
-import javafx.animation.FadeTransition;
-import javafx.animation.PauseTransition;
-import javafx.animation.SequentialTransition;
-import javafx.animation.Transition;
-import javafx.application.Platform;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.util.Duration;
-import ui.Bag;
-import ui.CloseButtonPane;
-import ui.InventoryButton;
-import world.Block;
-import world.Interactable;
-import world.Ladder;
-import world.LadderUp;
-import world.Map;
-import world.Ore;
-import world.Pickaxeable;
+package entities;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
-public class GamePane extends Pane {
-	private Map gameMap;
-	private Player player;
-	private double playerCenterAbsX;
-	private double playerCenterAbsY;
-	private Pane mother;
-	private InventoryButton inv;
-	private Bag bag;
-	private CloseButtonPane closeButton;
-	private static boolean pass = true;
-	private int[][] mapBlock, mapMonster;
-	private List<Block> blocks = new ArrayList<>(); // Store all rocks
-	private List<FloatingItem> floatingItems = new ArrayList<>();
-	private Rectangle transitionScreen;
-//	private static final int ROCK_COUNT = 10; // Number of randomly placed rocks
-	private int SLIME_COUNT = 2, ZOMBIE_COUNT = 0;
-	private List<Monster> monsters;
-	private int ladderX;
-	private int ladderY;
+import game.GameController;
+import game.Item;
+import game.MainPane;
+import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import ui.ContainerPane;
+import world.Block;
+import world.Ore;
+import world.Pickaxeable;
 
-	public GamePane(Pane mother) {
-		this.mother = mother;
-		this.gameMap = new Map();
-		this.player = new Player();
-		this.blocks = new ArrayList<>();
-		this.getChildren().add(this.gameMap);
+public class Player extends Canvas {
+    private final int WIDTH;
+    private final int HEIGHT;
+    private double x;
+    private double y;
+    private int speed;
 
-		this.playerCenterAbsX = this.player.getX() + this.getLayoutX() - 16 * GameController.getScale();
-		this.playerCenterAbsY = this.player.getY() + this.getLayoutY() - 8 * GameController.getScale();
+    private Image spriteSheet;
+    private Image miningSpriteSheet;
+    private Image attackingSpriteSheet; 
+    private Image deathSpriteSheet; 
+    private int frameIndex;
+    private final int totalFrames = 8; // 8 frames for walking animation
+    private final int frameWidth = 16;
+    private final int frameHeight = 32;
+    
+    // Mining animation properties
+    private final int miningTotalFrames = 3; // 3 frames for mining animation
+    private final int miningFrameWidth = 48;
+    private final int miningFrameHeight = 48;
+    private int miningFrameIndex = 0;
+    
+    // Attacking animation properties
+    private final int attackingTotalFrames = 3; // 3 frames for attacking animation
+    private final int attackingFrameWidth = 48;
+    private final int attackingFrameHeight = 48;
+    private int attackingFrameIndex = 0;
+    
+    private final int deathTotalFrames = 4; // 4 frames for death animation
+    private final int deathFrameWidth = 32;
+    private final int deathFrameHeight = 32;
+    private int deathFrameIndex = 0;
+    private int deathFrameDelay = 15;
+    private int deathFrameCounter = 0;
+    private boolean isDying = false;
+    private boolean isDead = false;
+    // Direction
+    private boolean movingUp, movingDown, movingRight, movingLeft;
+    private String lastDirection = "down"; // Tracks the last direction moved
+    private boolean isMoving = false; // Tracks if currently moving in any direction
+    
+    // State
+    private boolean canMove = true;
+    private boolean isMining = false;
+    private boolean isAttacking = false;
+    
+    private AnimationTimer animationTimer;
 
-		transitionScreen = new Rectangle();
-		transitionScreen.setFill(Color.BLACK);
-		transitionScreen.setOpacity(0);
-		transitionScreen.setViewOrder(-1000);
-		transitionScreen.setVisible(false);
-		this.getChildren().add(transitionScreen);
+    // Animation speed control
+    private int frameDelay = 10; // Movement animation speed
+    private int frameCounter = 0;
+    private int miningFrameDelay = 10; // Mining animation speed
+    private int miningFrameCounter = 0;
+    private int attackingFrameDelay = 10; // Attacking animation speed (faster than mining)
+    private int attackingFrameCounter = 0;
+    
+    private static Item usingItem;
 
-		generateNextMap();
+    public static ArrayList<ArrayList<Item>> Inventory;
+    public static ContainerPane[][] containerGrid= new ContainerPane[5][5];
 
-		setupMouseHandler();
-		startTimer();
-	}
+    public Player() {
+        WIDTH = frameWidth * GameController.getScale();
+        HEIGHT = frameHeight * GameController.getScale();
+        setSpeed(GameController.getScale());
+        setX(1080 / 2 - WIDTH / 2);
+        setY(720 / 2 - HEIGHT / 2 - HEIGHT / 4);
 
-	private void generateNextMap() {
-		Random rand = new Random();
+        // Load sprite sheets
+        String playerPath = ClassLoader.getSystemResource("boy.png").toString();
+        spriteSheet = new Image(playerPath);
+        
+        String miningPath = ClassLoader.getSystemResource("boy_useaxe.png").toString();
+        miningSpriteSheet = new Image(miningPath);
+        
+        String attackingPath = ClassLoader.getSystemResource("boy-attack.png").toString();
+        attackingSpriteSheet = new Image(attackingPath);
+        
+        String deadPath = ClassLoader.getSystemResource("boy-dead.png").toString();
+        deathSpriteSheet = new Image(deadPath); // Load death animation
+        
+        // Set canvas to the largest of the animations to accommodate all
+        this.setWidth(Math.max(Math.max(WIDTH, miningFrameWidth * GameController.getScale()), 
+                             attackingFrameWidth * GameController.getScale()));
+        this.setHeight(Math.max(Math.max(HEIGHT, miningFrameHeight * GameController.getScale()), 
+                              attackingFrameHeight * GameController.getScale()));
 
-//		System.out.println(MainPane.getFloorNum());
-//		if(MainPane.getFloorNum() >= 1) {
-//			this.gameMap.setMap(3);
-//		}
-//		else if(MainPane.getFloorNum() >= 10) {
-//			this.gameMap.setMap(2);
-//		}
-//		else {
-//			this.gameMap.setMap(1);
-//		}
-		this.gameMap.setMap(rand.nextInt(3) + 1);
+        frameIndex = 0;
+        movingDown = false;
 
-		int arraySizeH = (int) (this.gameMap.getHeight() / GameController.getScale()) / 16;
-		int arraySizeW = (int) (this.gameMap.getWidth() / GameController.getScale()) / 16;
-		this.mapBlock = new int[arraySizeH][arraySizeW];
+        Inventory = new ArrayList<>();
 
-		// Random player start position
-		int playerSpawnX = rand.nextInt((mapBlock[0].length - 3 - 1) - 3 + 1) + 3;
-		int playerSpawnY = 4;
+        for (int i = 0; i < 5; i++) {
+            ArrayList<Item> row = new ArrayList<>();
+            for (int j = 0; j < 5; j++) {
+                row.add(null);
+            }
+            Inventory.add(row);
+        }
+        for(int i=0;i<5;i++) {
+            for(int j=0;j<5;j++) {
+                containerGrid[i][j]=null;
+            }
+        }
+        setupAnimationTimer();
+        draw(); // Draw initial frame
+    }
+    
+    public static boolean addItem(Item item, ContainerPane[][] containerGrid) {
+        for (int row = 0; row < 5; row++) {
+            for (int col = 0; col < 5; col++) {
+                if (Inventory.get(row).get(col) == null) {
+                    Inventory.get(row).set(col, item);
+                    
+                    if (containerGrid != null&&row==0) {
+                        containerGrid[row][col].loadItemFromInventory();
+                        containerGrid[row][col].drawContainer();
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
-		this.player.setX((playerSpawnX - 1) * 16 * GameController.getScale());
-		this.player.setY(2 * 16 * GameController.getScale());
-		this.player.setLayoutX(this.player.getX());
-		this.player.setLayoutY(this.player.getY());
-		this.mapBlock[playerSpawnY][playerSpawnX] = -2;
+    public static boolean useItem(Item item, int amount, ContainerPane[][] containerGrid) {
+        int count = 0;
 
-		LadderUp ladderUp = new LadderUp();
-		ladderUp.setLayoutX(this.player.getX() + 16 * GameController.getScale());
-		ladderUp.setLayoutY(this.player.getY());
-		this.getChildren().add(ladderUp);
-		blocks.add(ladderUp);
+        for (int row = 4; row >=0; row--) {
+            for (int col =4; col >=0; col--) {
+                if (Inventory.get(row).get(col) != null && Inventory.get(row).get(col).equals(item)) {
+                    count++;
+                }
+            }
+        }
 
-		for (int i = 0; i < mapBlock.length; i++) {
-			for (int j = 0; j < mapBlock[0].length; j++) {
-				if (i > 3 && i < mapBlock.length - 3 && j < mapBlock[0].length - 3 && j > 2) {
-					if (i == playerSpawnY && j == playerSpawnX) {
-						continue;
-					}
-					int randomValue = rand.nextInt(100);
+        if (count < amount) return false;
 
-					int p1 = 90;
-					int p2 = 4;
-					int p3 = 3;
-					int p4 = 2;
-					int p5 = 1;
+        for (int row = 4; row >=0; row--) {
+            for (int col =4; col >=0; col--) {
+                if (Inventory.get(row).get(col) != null && Inventory.get(row).get(col).equals(item) && amount > 0) {
+                    Inventory.get(row).set(col, null);
+                    amount--;
 
-					if (randomValue < p1) {
-						this.mapBlock[i][j] = 0;
-						continue;
-					} else if (randomValue < p1 + p2) {
-						this.mapBlock[i][j] = 1;
-					} else if (randomValue < p1 + p2 + p3) {
-						this.mapBlock[i][j] = 2;
-					} else if (randomValue < p1 + p2 + p3 + p4) {
-						this.mapBlock[i][j] = 3;
+                    if (containerGrid != null&&row==0) {
+                        containerGrid[row][col].loadItemFromInventory();
+                        containerGrid[row][col].drawContainer();
+                    }
+                }
+            }
+        }
+        return true;
+    }
 
-					} else {
-						this.mapBlock[i][j] = 4;
-					}
+    public static ArrayList<ArrayList<Item>> getInventory() {
+        return Inventory;
+    }
+    
+    public static Item getUsingItem() {
+        return usingItem;
+    }
 
-					Ore block = new Ore(this.mapBlock[i][j]);
-					if (this.mapBlock[i][j] == 1) {
-						block = new Ore(rand.nextInt(2));
-					}
-					block.setLayoutX(16 * GameController.getScale() * j);
-					block.setLayoutY(16 * GameController.getScale() * i);
-					this.getChildren().add(block);
-					blocks.add(block);
+    public static void setUsingItem(Item usingItem) {
+        Player.usingItem = usingItem;
+    }
 
-				} else {
-					this.mapBlock[i][j] = -1;
-				}
-			}
+    private void setupAnimationTimer() {
+        animationTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                if (isAttacking) {
+                    attackingFrameCounter++;
+                    if (attackingFrameCounter >= attackingFrameDelay) {
+                        attackingFrameCounter = 0;
+                        attackingFrameIndex = (attackingFrameIndex + 1) % attackingTotalFrames;
+                        
+                        // If we've completed the animation cycle, stop attacking
+                        if (attackingFrameIndex == 0) {
+                            isAttacking = false;
+                            setCanMove(true);
+                        }
+                        
+                        if (attackingFrameIndex == 2) {
+                        	useSword();
+                        }
+                    }
+                } else if (isMining) {
+                    miningFrameCounter++;
+                    if (miningFrameCounter >= miningFrameDelay) {
+                        miningFrameCounter = 0;
+                        miningFrameIndex = (miningFrameIndex + 1) % miningTotalFrames;
+                        // If we've completed the animation cycle, stop mining
+                        if (miningFrameIndex == 0) {
+                            isMining = false;
+                            setCanMove(true);
+                            usePickaxe();
+                        }
+                    }
+                } else {
+                    isMoving = movingDown || movingUp || movingRight || movingLeft;
+                    
+                    if (isMoving) {
+                        frameCounter++;
+                        if (frameCounter >= frameDelay) {
+                            frameCounter = 0;
+                            frameIndex = (frameIndex + 1) % totalFrames;
+                        }
+                        
+                        if (movingDown) 
+                            lastDirection = "down";
+                        else if (movingUp) 
+                            lastDirection = "up";
+                        else if (movingRight) 
+                            lastDirection = "right";
+                        else if (movingLeft) 
+                            lastDirection = "left";
+                    } else {
+                        frameIndex = 0;
+                    }
+                }
+                
+                draw(); // Draw the current frame
+            }
+        };
+        animationTimer.start();
+    }
+
+    public void draw() {
+        GraphicsContext gc = this.getGraphicsContext2D();
+        gc.clearRect(0, 0, this.getWidth(), this.getHeight());
+        gc.setImageSmoothing(false);
+
+        if (isDying) {
+            drawDeathAnimation(gc);  // Draw death animation when dying
+        } else if (isAttacking) {
+            drawAttackingAnimation(gc);  // Draw attacking animation
+        } else if (isMining) {
+            drawMiningAnimation(gc);  // Draw mining animation
+        } else {
+            drawMovementAnimation(gc);  // Draw normal movement animation
+        }
+    }
+    
+    private void drawMovementAnimation(GraphicsContext gc) {
+        int row = 0;
+        
+        if (isMoving) {    
+            if (movingRight || movingLeft) {
+                row = 2; // Use walking right animation row for both right and left
+            } else if (movingUp) {
+                row = 1; // Walking up
+            } else if (movingDown) {
+                row = 0; // Walking down
+            }
+        } else {
+            switch (lastDirection) {
+                case "right": row = 2; break;
+                case "up": row = 1; break;
+                case "down": row = 0; break;
+                case "left": row = 2; break; // Uses right sprites but flipped
+            }
+        }
+        
+        double srcX = frameIndex * frameWidth;
+        double srcY = row * frameHeight;
+        
+        // Calculate position to center the player sprite on the canvas
+        double drawX = (this.getWidth() - WIDTH) / 2;
+        double drawY = (this.getHeight() - HEIGHT) / 2;
+
+        // Check if moving left, then flip the sprite
+        if (movingLeft || (!isMoving && lastDirection.equals("left"))) {
+            gc.save(); // Save the current state
+            gc.translate(drawX + WIDTH, drawY); // Position for flipping
+            gc.scale(-1, 1); // Flip horizontally
+            gc.drawImage(spriteSheet, srcX, srcY, frameWidth, frameHeight, 0, 0, WIDTH, HEIGHT);
+            gc.restore(); // Restore the original state
+        } else {
+            // Draw normally when not moving left
+            gc.drawImage(spriteSheet, srcX, srcY, frameWidth, frameHeight, drawX, drawY, WIDTH, HEIGHT);
+        }
+    }
+    
+    private void drawMiningAnimation(GraphicsContext gc) {
+        int row;
+        
+        // Select the correct row based on direction
+        switch (lastDirection) {
+            case "up":
+                row = 1;
+                break;
+            case "right":
+                row = 2;
+                break;
+            case "left":
+                row = 2; // Uses right sprites but flipped
+                break;
+            case "down":
+            default:
+                row = 0;
+                break;
+        }
+        
+        setCanMove(false);
+        double srcX = miningFrameIndex * miningFrameWidth;
+        double srcY = row * miningFrameHeight;
+        
+        // Calculate position to center the mining sprite on the canvas
+        double drawX = (this.getWidth() - miningFrameWidth * GameController.getScale()) / 2;
+        double drawY = (this.getHeight() - miningFrameHeight * GameController.getScale()) / 2;
+        
+        // Check if mining left, then flip the sprite
+        if (lastDirection.equals("left")) {
+            gc.save(); // Save the current state
+            gc.translate(drawX + miningFrameWidth * GameController.getScale(), drawY); // Position for flipping
+            gc.scale(-1, 1); // Flip horizontally
+            gc.drawImage(miningSpriteSheet, srcX, srcY, miningFrameWidth, miningFrameHeight, 
+                       0, 0+40, miningFrameWidth * GameController.getScale(), miningFrameHeight * GameController.getScale());
+            gc.restore(); // Restore the original state
+        } else {
+            // Draw normally for other directions
+            gc.drawImage(miningSpriteSheet, srcX, srcY, miningFrameWidth, miningFrameHeight, 
+                       drawX, drawY+40, miningFrameWidth * GameController.getScale(), miningFrameHeight * GameController.getScale());
+        }
+    }
+    
+    private void drawAttackingAnimation(GraphicsContext gc) {
+        int row;
+        
+        // Select the correct row based on direction
+        switch (lastDirection) {
+            case "up":
+                row = 1;
+                break;
+            case "right":
+                row = 2;
+                break;
+            case "left":
+                row = 2; // Uses right sprites but flipped
+                break;
+            case "down":
+            default:
+                row = 0;
+                break;
+        }
+        
+        setCanMove(false);
+        double srcX = attackingFrameIndex * attackingFrameWidth;
+        double srcY = row * attackingFrameHeight;
+        
+        // Calculate position to center the attacking sprite on the canvas
+        double drawX = (this.getWidth() - attackingFrameWidth * GameController.getScale()) / 2;
+        double drawY = (this.getHeight() - attackingFrameHeight * GameController.getScale()) / 2;
+        
+        // Check if attacking left, then flip the sprite
+        if (lastDirection.equals("left")) {
+            gc.save(); // Save the current state
+            gc.translate(drawX + attackingFrameWidth * GameController.getScale(), drawY); // Position for flipping
+            gc.scale(-1, 1); // Flip horizontally
+            gc.drawImage(attackingSpriteSheet, srcX, srcY, attackingFrameWidth, attackingFrameHeight, 
+                       0, 0+40, attackingFrameWidth * GameController.getScale(), attackingFrameHeight * GameController.getScale());
+            gc.restore(); // Restore the original state
+        } else {
+            // Draw normally for other directions
+            gc.drawImage(attackingSpriteSheet, srcX, srcY, attackingFrameWidth, attackingFrameHeight, 
+                       drawX, drawY+40, attackingFrameWidth * GameController.getScale(), attackingFrameHeight * GameController.getScale());
+        }
+    }
+    
+    public void die(Runnable onDeathComplete) {
+        if (isDead) return; // Prevent multiple deaths
+        isDead = true; // Mark player as dead
+
+        System.out.println("Playing death animation...");
+        isDying = true;
+        deathFrameIndex = 0; // Reset animation
+
+        // Disable movement
+        setCanMove(false);
+
+        // Start death animation
+        AnimationTimer deathAnimation = new AnimationTimer() {
+            private int deathFrameCounter = 0;
+
+            @Override
+            public void handle(long now) {
+                deathFrameCounter++;
+                if (deathFrameCounter >= deathFrameDelay) {
+                    deathFrameCounter = 0;
+                    if (deathFrameIndex < deathTotalFrames - 1) {
+                        deathFrameIndex++;
+                    } else {
+                        stop(); // Stop animation when complete
+                        Platform.runLater(() -> {
+                            onDeathComplete.run();
+                            isDead = false; // Reset for next life
+                        });
+                    }
+                }
+                draw(); // Keep updating the frame
+            }
+        };
+
+        deathAnimation.start();
+    }
+
+    
+    private void drawDeathAnimation(GraphicsContext gc) {
+        double srcX = deathFrameIndex * deathFrameWidth;
+        double srcY = 0; // Assuming the death animation is in a single row
+
+        double drawX = (this.getWidth() - deathFrameWidth * GameController.getScale()) / 2;
+        double drawY = (this.getHeight() - deathFrameHeight * GameController.getScale()) / 2;
+
+        if (lastDirection.equals("left")) {
+            // Flip horizontally
+            gc.save();
+            gc.translate(drawX + deathFrameWidth * GameController.getScale(), drawY);
+            gc.scale(-1, 1);
+            gc.drawImage(deathSpriteSheet, srcX, srcY, deathFrameWidth, deathFrameHeight, 
+                         0, 0, deathFrameWidth * GameController.getScale(), deathFrameHeight * GameController.getScale());
+            gc.restore();
+        } else {
+            // Normal rendering (no flipping)
+            gc.drawImage(deathSpriteSheet, srcX, srcY, deathFrameWidth, deathFrameHeight, 
+                         drawX, drawY, deathFrameWidth * GameController.getScale(), deathFrameHeight * GameController.getScale());
+        }
+    }
+
+    
+    public void attack() {
+        if (!isAttacking && !isMining && canMove) {
+            setCanMove(false);
+            isAttacking = true;
+            
+            // Reset frame index to start animation from beginning
+            attackingFrameIndex = 0;
+            attackingFrameCounter = 0;
+        }
+    }
+    
+    public void mine() {
+        if (!isMining && !isAttacking && canMove) {
+            setCanMove(false);
+            isMining = true;
+            
+            // Reset frame index to start animation from beginning
+            miningFrameIndex = 0;
+            miningFrameCounter = 0;
+        }
+    }
+    
+    public void useSword() {
+    	Iterator<Monster> iterator = GameController.getGamePane().getMonsters().iterator();
+
+    	while (iterator.hasNext()) {
+    	    Monster slime = iterator.next();
+    	    int damage = 1;
+
+    	    if (slime.getAttack(damage)) {
+    	        System.err.println("monster die");
+//    	        slime.stopAnimation();
+    	        iterator.remove(); // Safely remove from the list
+    	        GameController.getGamePane().getChildren().remove(slime); // Remove from UI
+    	    }
+    	}
+    }
+    
+    public void usePickaxe() {
+		double playerFootX = getX() + (8 + 24 - 8) * GameController.getScale();
+		double playerFootY = getY() + (32) * GameController.getScale();
+
+		double targetMineBlockX = 0;
+		double targetMineBlockY = 0;
+		switch (getLastDirection()) {
+		case "up":
+			targetMineBlockX = ((playerFootX) / GameController.getScale() / 16);
+			targetMineBlockY = ((playerFootY) / GameController.getScale() / 16) - 1;
+			break;
+		case "right":
+			targetMineBlockX = ((playerFootX) / GameController.getScale() / 16) + 1;
+			targetMineBlockY = ((playerFootY) / GameController.getScale() / 16);
+			break;
+		case "left":
+			targetMineBlockX = ((playerFootX) / GameController.getScale() / 16) - 1;
+			targetMineBlockY = ((playerFootY) / GameController.getScale() / 16);
+			break;
+		case "down":
+			targetMineBlockX = ((playerFootX) / GameController.getScale() / 16);
+			targetMineBlockY = ((playerFootY) / GameController.getScale() / 16) + 1;
+		default:
+
+			break;
 		}
+		if (targetMineBlockX != 0 && targetMineBlockY != 0) {
+			Iterator<Block> iterator = GameController.getGamePane().getBlocks().iterator();
+			while (iterator.hasNext()) {
+				Block block = iterator.next();
 
-		for (int i = 0; i < mapBlock.length; i++) {
-			String tmp = "";
-			for (int j = 0; j < mapBlock[0].length; j++) {
-				tmp += this.mapBlock[i][j] + " ";
-				if (this.mapBlock[i][j] == 1) {
-				}
-			}
-			System.out.println(tmp);
-		}
+				int blockCenX = (int) ((block.getLayoutX() + (8 * GameController.getScale()))
+						/ GameController.getScale() / 16);
+				int blockCenY = (int) ((block.getLayoutY() + (8 * GameController.getScale()))
+						/ GameController.getScale() / 16);
 
-		int randomLadder = rand.nextInt(blocks.size());
-		while (!(blocks.get(randomLadder) instanceof Pickaxeable)) {
-			randomLadder = rand.nextInt(blocks.size());
-		}
-		int TargetLadderX = (int) (blocks.get(randomLadder).getLayoutX() / GameController.getScale() / 16);
-		int TargetLadderY = (int) (blocks.get(randomLadder).getLayoutY() / GameController.getScale() / 16);
-		System.out.println(TargetLadderX + " " + TargetLadderY);
-		this.ladderX = TargetLadderX;
-		this.ladderY = TargetLadderY;
+				if (blockCenX == (int) targetMineBlockX && blockCenY == (int) targetMineBlockY) {
+					int damage = 1;
 
-		this.getChildren().add(this.player);
-		mapMonster = mapBlock;
+					if (block instanceof Pickaxeable) {
+						Ore ore = (Ore) block;
+						new Thread(() -> {
+					        try {
+					        	 Platform.runLater(() -> {
+					                    ore.setLayoutY(ore.getLayoutY() - 2);
+					                });
+					                Thread.sleep(50);
 
-		monsters = new ArrayList<Monster>();
-		generateRandomSlimes();
-		generateRandomZombies();
-//	    Slime slime = new Slime(5 * 16 * GameController.getScale(), 5 * 16 * GameController.getScale(), 2, 1, 1, player);
-//	    monsters.add(slime);
-//	    this.getChildren().add(slime);
-	}
+					                Platform.runLater(() -> {
+					                    ore.setLayoutY(ore.getLayoutY() + 2);
+					                });
+					                Thread.sleep(50);
 
-	public void createLadder(int gridX, int gridY) {
-		Ladder ladder = new Ladder();
-		ladder.setLayoutX(16 * GameController.getScale() * gridX);
-		ladder.setLayoutY(16 * GameController.getScale() * gridY);
-
-		this.getChildren().add(ladder);
-		blocks.add(ladder);
-	}
-
-	private void setupMouseHandler() {
-		// Add event handler for mouse clicks
-		this.setOnMouseClicked(this::handleMouseClick);
-	}
-
-	private void handleMouseClick(MouseEvent event) {
-
-		if (interactBlockClick(event)) {
-			return;
-		}
-
-		if (Player.getUsingItem() == null) {
-			System.out.println("Do nothing");
-			return;
-		}
-
-		
-		if (Player.getUsingItem().getRow() == 1 && Player.getUsingItem().getCol() == 4) {
-			System.out.println("player is Attacking");
-			player.setAttacking(true);
-			player.attack();
-		}
-		
-		if (player.getStamina() > 0) {
-			// Only execute mining if ladder wasn’t clicked
-			if (Player.getUsingItem().getRow() == 0 && Player.getUsingItem().getCol() == 0 && !player.isMining()) {
-				System.out.println("player is Mining");
-				player.setMining(true);
-				player.mine();
-				
-			}
-		} else {
-			System.out.println("Player has no stamina!");
-		}
-
-	
-	}
-
-	private boolean interactBlockClick(MouseEvent event) {
-		for (Block block : this.blocks) {
-			if (block instanceof Interactable interactBlock) {
-				int mouseX = (int) (event.getX() / GameController.getScale() / 16);
-				int mouseY = (int) (event.getY() / GameController.getScale() / 16);
-				int x = (int) (block.getLayoutX() / GameController.getScale() / 16);
-				int y = (int) (block.getLayoutY() / GameController.getScale() / 16);
-
-//				System.out.println("X=" + mouseX + ", Y=" + mouseY);
-//				System.out.println("X=" + x + ", Y=" + y);
-
-				if (mouseX == x && mouseY == y) {
-					interactBlock.response();
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	private void generateRandomSlimes() {
-		Random random = new Random();
-		for (int i = 0; i < SLIME_COUNT; i++) {
-			int slimeY, slimeX;
-
-			do {
-				slimeY = random.nextInt(5, mapMonster.length - 4);
-				slimeX = random.nextInt(5, mapMonster[0].length - 4);
-			} while (!canSpawnAt(slimeX, slimeY, mapMonster));
-			mapMonster[slimeY][slimeX] = -3;
-			slimeY *= GameController.getScale() * 16;
-			slimeX *= GameController.getScale() * 16;
-
-			Slime slime = new Slime(slimeX, slimeY, 2, 1, 1, player);
-
-			monsters.add(slime);
-			this.getChildren().add(slime);
-		}
-	}
-
-	private void generateRandomZombies() {
-		Random random = new Random();
-		for (int i = 0; i < ZOMBIE_COUNT; i++) {
-			int zombieY, zombieX;
-
-			do {
-				zombieY = random.nextInt(5, mapMonster.length - 4);
-				zombieX = random.nextInt(5, mapMonster[0].length - 4);
-			} while (!canSpawnAt(zombieX, zombieY, mapMonster));
-			mapMonster[zombieY][zombieX] = -3;
-			zombieY *= GameController.getScale() * 16;
-			zombieX *= GameController.getScale() * 16;
-
-			Zombie zombie = new Zombie(zombieX, zombieY, 1, 5, 1, player);
-
-			monsters.add(zombie);
-			this.getChildren().add(zombie);
-		}
-	}
-
-	private boolean canSpawnAt(int x, int y, int[][] map) {
-		// Check 3x3 surrounding area
-		for (int i = -1; i <= 1; i++) {
-			for (int j = -1; j <= 1; j++) {
-				int checkY = y + i;
-				int checkX = x + j;
-				if (checkY < 0 || checkY >= map.length || checkX < 0 || checkX >= map[0].length
-						|| map[checkY][checkX] != 0) {
-					return false; // Not a valid spawn location
-				}
-			}
-		}
-		return true;
-	}
-
-	private void startTimer() {
-		AnimationTimer timer = new AnimationTimer() {
-			@Override
-			public void handle(long now) {
-				update();
-			}
-		};
-		timer.start();
-	}
-
-	private void update() {
-		double dx = 0, dy = 0;
-
-		boolean movingDown = false;
-		boolean movingUp = false;
-		boolean movingRight = false;
-		boolean movingLeft = false;
-
-		if (GameController.getKeyboardController().isBag() && pass) {
-//			Thread thread = new Thread(() -> {
-//				Platform.runLater(() -> {
-			if (bag == null) {
-				bag = new Bag();
-			}
-			inv = new InventoryButton();
-			inv.setLayoutX(265);
-			inv.setLayoutY(60);
-			bag.setLayoutX(265);
-			bag.setLayoutY(115);
-			closeButton = new CloseButtonPane(mother, bag, inv);
-			closeButton.setLayoutX(760);
-			closeButton.setLayoutY(60);
-
-			// ponG บอกมา
-			if (!mother.getChildren().contains(bag)) {
-				mother.getChildren().add(bag);
-			} else {
-				System.out.println("Bag is already added!");
-			}
-
-			mother.getChildren().addAll(inv, closeButton);
-			pass = false;
-//				});
-//			});
-//			thread.start();
-		} else if (!GameController.getKeyboardController().isBag() && !pass) {
-//			Platform.runLater(() -> {
-			mother.getChildren().removeAll(inv, bag, closeButton);
-			bag = null;
-			inv = null;
-			closeButton = null;
-			pass = true;
-//			});
-		}
-
-		if (player.canMove()) {
-			if (GameController.getKeyboardController().isMoveUp()) {
-				if (this.player.getY() >= 2 * 16 * GameController.getScale()
-						&& !isColliding(0, -this.player.getSpeed())) {
-					dy -= this.player.getSpeed();
-					movingUp = true;
-				}
-			}
-			if (GameController.getKeyboardController().isMoveDown()) {
-				if (this.player.getY() <= this.gameMap.getHeight() - (5 * 16 + 8) * GameController.getScale()
-						&& !isColliding(0, this.player.getSpeed())) {
-					dy += this.player.getSpeed();
-					movingDown = true;
-				}
-			}
-			if (GameController.getKeyboardController().isMoveLeft()) {
-				if (this.player.getX() >= 2 * 16 * GameController.getScale()
-						&& !isColliding(-this.player.getSpeed(), 0)) {
-					dx -= this.player.getSpeed();
-					movingLeft = true;
-				}
-			}
-			if (GameController.getKeyboardController().isMoveRight()) {
-				if (this.player.getX() <= this.gameMap.getWidth() - 5 * 16 * GameController.getScale()
-						&& !isColliding(this.player.getSpeed(), 0)) {
-					dx += this.player.getSpeed();
-					movingRight = true;
-				}
-			}
-		}
-
-		player.setMovingDown(movingDown);
-		player.setMovingUp(movingUp);
-		player.setMovingRight(movingRight);
-		player.setMovingLeft(movingLeft);
-
-		// Normalize diagonal movement
-		if (dx != 0 || dy != 0) {
-			double length = Math.sqrt(dx * dx + dy * dy);
-			dx = (dx / length) * this.player.getSpeed();
-			dy = (dy / length) * this.player.getSpeed();
-		}
-
-		// Update camera position
-		double newLayoutX = playerCenterAbsX - this.player.getX();
-		double newLayoutY = playerCenterAbsY - this.player.getY();
-		newLayoutX = Math.max(-(this.gameMap.getWidth() - (14 * 16 * GameController.getScale())),
-				Math.min(0, newLayoutX));
-		newLayoutY = Math.max(-(this.gameMap.getHeight() - ((10 * 16 - 8) * GameController.getScale())),
-				Math.min(0, newLayoutY));
-		this.setLayoutX(newLayoutX);
-		this.setLayoutY(newLayoutY);
-
-		this.player.setX(this.player.getX() + dx);
-		this.player.setY(this.player.getY() + dy);
-		this.player.setLayoutX(this.player.getX());
-		this.player.setLayoutY(this.player.getY());
-//		adjustViewOrder();
-
-		// Floating item
-		Iterator<FloatingItem> iterator = floatingItems.iterator();
-		while (iterator.hasNext()) {
-			FloatingItem item = iterator.next();
-			int playerFootGridX = (int) ((this.player.getX() + (8 + 24 - 8) * GameController.getScale())
-					/ GameController.getScale() / 16);
-			int playerFootGridY = (int) ((this.player.getY() + (32) * GameController.getScale())
-					/ GameController.getScale() / 16);
-			int itemCenGridX = (int) ((item.getLayoutX() + 8 * GameController.getScale()) / GameController.getScale()
-					/ 16);
-			int itemCenGridY = (int) ((item.getLayoutY() + 8 * GameController.getScale()) / GameController.getScale()
-					/ 16);
-
-			if (Math.abs(playerFootGridX - itemCenGridX) <= 1 && Math.abs(playerFootGridY - itemCenGridY) <= 1) {
-//				System.out.println("start follow");
-				double itemX = (item.getLayoutX() + 8 * GameController.getScale());
-				double itemY = (item.getLayoutY() + 8 * GameController.getScale());
-
-				double playerCenX = (this.player.getX() + (8 + 24 - 8) * GameController.getScale());
-				double playerCenY = (this.player.getY() + (32) * GameController.getScale());
-
-				double itemDx = playerCenX - itemX;
-				double itemDy = playerCenY - itemY;
-				double distance = Math.sqrt(itemDx * itemDx + itemDy * itemDy);
-
-				if (distance > 1) {
-					double speed = 2;
-					double moveX = (itemDx / distance) * speed;
-					double moveY = (itemDy / distance) * speed;
-
-					item.setLayoutX(item.getLayoutX() + moveX);
-					item.setLayoutY(item.getLayoutY() + moveY);
-				}
-
-			}
-			if (playerFootGridX == itemCenGridX && playerFootGridY == itemCenGridY) {
-//				System.err.println("item over u");
-				Player.addItem(new Item(item.getRow(), item.getCol()), Player.containerGrid);
-				this.getChildren().remove(item);
-				iterator.remove();
-
-			}
-		}
-
-		// Update monster
-		for (Monster monster : getMonsters()) {
-			Platform.runLater(() -> monster.update());
-
-		}
-	}
-
-//	private void adjustViewOrder() {
-//		for (Zombie zombie : zombies) {
-//			if (player.getY() + 1 * GameController.getScale() >= zombie.getY()) {
-//				player.setViewOrder(-501); // player in front
-//				zombie.setViewOrder(-500); // zombie behind player
-//			} else {
-//				player.setViewOrder(-500); // player behind zombie
-//				zombie.setViewOrder(-501); // zombie in front
-//			}
-//		}
-//
-//		for (Slime slime : slimes) {
-//			if (player.getY() >= slime.getY()) {
-//				player.setViewOrder(-501);
-//				slime.setViewOrder(-500);
-//			} else {
-//				player.setViewOrder(-500);
-//				slime.setViewOrder(-501);
-//			}
-//		}
-//	}
-
-	// Collision Detection for Random Rocks
-	private boolean isColliding(double dx, double dy) {
-		double nextX = this.player.getX() + dx + 16 * GameController.getScale();
-		double nextY = this.player.getY() + dy + 16 * GameController.getScale();
-
-		double hitboxWidth = 16 * GameController.getScale();
-		double hitboxHeight = 16 * GameController.getScale();
-
-		for (Block rock : blocks) {
-			double rockX = rock.getLayoutX();
-			double rockY = rock.getLayoutY();
-			double rockSize = 16 * GameController.getScale(); // Adjust based on rock size
-
-			// Smaller collision box for smoother movement
-			double collisionPadding = 4 * GameController.getScale();
-			double rockLeft = rockX + collisionPadding;
-			double rockRight = rockX + rockSize - collisionPadding;
-			double rockTop = rockY - collisionPadding;
-			double rockBottom = rockY;
-
-			// Check if player's next position overlaps with rock
-			if (nextX + hitboxWidth > rockLeft && nextX < rockRight && nextY + hitboxHeight > rockTop
-					&& nextY < rockBottom) {
-				return true; // Collision detected
-			}
-
-		}
-		return false; // No collision
-	}
-
-	public void enterNextFloor() {
-		System.out.println("Entering next floor...");
-		updateOverlaySize();
-		transitionScreen.setVisible(true);
-
-		FadeTransition fadeIn = new FadeTransition(Duration.seconds(1), transitionScreen);
-		fadeIn.setFromValue(0);
-		fadeIn.setToValue(1);
-
-		PauseTransition pause = new PauseTransition(Duration.seconds(0.5));
-
-		Transition resetFloor = new Transition() {
-			{
-				setCycleDuration(Duration.seconds(0.1));
-			}
-
-			@Override
-			protected void interpolate(double frac) {
-				if (frac == 1.0) {
-					Platform.runLater(() -> {
-						getChildren().remove(getPlayer());
-						getChildren().removeAll(floatingItems);
-						getChildren().removeAll(blocks);
-
-						floatingItems.clear();
-						blocks.clear();
-
-						generateNextMap();
-
-						if (!getChildren().contains(player)) {
-							getChildren().add(player);
+					        } catch (InterruptedException e) {
+					            e.printStackTrace();
+					        }
+					    }).start();
+						if (ore.isBrokeFromBreak(damage)) {
+							FloatingItem dropItem = new FloatingItem(ore.getItemRow(), ore.getItemCol(),(int) targetMineBlockX, (int) targetMineBlockY);
+							iterator.remove();
+							GameController.getGamePane().getChildren().remove(this);
+							if((int) targetMineBlockX == GameController.getGamePane().getLadderX() && (int) targetMineBlockY == GameController.getGamePane().getLadderY()) {
+								
+								GameController.getGamePane().createLadder((int) targetMineBlockX, (int) targetMineBlockY);
+								System.out.println("Ladder created");		
+								
+								
+							}
+							GameController.getGamePane().getChildren().add(dropItem);
+							GameController.getGamePane().getfloatingItems().add(dropItem);
+							GameController.getGamePane().getChildren().remove(block);
+							GameController.getGamePane().getMapBlock()[(int) targetMineBlockY][(int) targetMineBlockX] = 0;
+							
+							GameController.getGamePane().getChildren().add(this);
+							return;
+							
 						}
-					});
+					}
 				}
 			}
-		};
+		}
+    }
+    
 
-		FadeTransition fadeOut = new FadeTransition(Duration.seconds(1.5), transitionScreen);
-		fadeOut.setFromValue(1);
-		fadeOut.setToValue(0);
-		fadeOut.setOnFinished(event -> {
-			transitionScreen.setVisible(false);
-			player.setCanMove(true);
-		});
+    
+    public void setMovingDown(boolean movingDown) {
+        this.movingDown = movingDown;
+    }
+    
+    public void setMovingUp(boolean movingUp) {
+        this.movingUp = movingUp;
+    }
+    
+    public void setMovingRight(boolean movingRight) {
+        this.movingRight = movingRight;
+    }
+    
+    public void setMovingLeft(boolean movingLeft) {
+        this.movingLeft = movingLeft;
+    }
 
-		SequentialTransition transition = new SequentialTransition(fadeIn, pause, resetFloor, fadeOut);
-		transition.play();
+    public double getX() {
+        return x;
+    }
+
+    public void setX(double d) {
+        this.x = d;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public void setY(double y) {
+        this.y = y;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
+    
+    public String getLastDirection() {
+        return lastDirection;
+    }
+
+    public boolean canMove() {
+        return canMove;
+    }
+
+    public void setCanMove(boolean canMove) {
+        this.canMove = canMove;
+    }
+    
+    public boolean isMining() {
+        return isMining;
+    }
+    
+    public void setMining(boolean isMining) {
+        this.isMining = isMining;
+    }
+    
+    public boolean isAttacking() {
+        return isAttacking;
+    }
+    
+    public void setAttacking(boolean isAttacking) {
+        this.isAttacking = isAttacking;
+    }
+    
+    public static Item getitem() {
+        return usingItem;
+    }
+
+	public boolean isDead() {
+		return isDead;
 	}
 
-	private void updateOverlaySize() {
-		transitionScreen.setWidth(this.getWidth());
-		transitionScreen.setHeight(this.getHeight());
-		transitionScreen.toFront(); // Ensure it's on top
+	public void setDead(boolean isDead) {
+		this.isDead = isDead;
 	}
 
-	public void reducePlayerHealth(int damage) {
-		// Prevent taking damage if already dead
-		if (player.isDead())
-			return;
-		setPlayerHealth(player.getHealth() - damage);
+	public boolean isDying() {
+		return isDying;
 	}
 
-	public void setPlayerHealth(int health) {
-		player.setHealth(health);
-		GameController.getMainPane().setHBar(player.getHealth());
+	public void setDying(boolean isDying) {
+		this.isDying = isDying;
 	}
 
-	public void setPlayerStamina(int stamina) {
-		player.setStamina(stamina);
-		GameController.getMainPane().setSBar(player.getStamina());
-	}
-
-	private void resetGame() {
-		System.out.println("Resetting game...");
-		MainPane mainPane = (MainPane) mother;
-
-		// ✅ Ensure transitionScreen covers the entire game area
-		updateOverlaySize();
-		transitionScreen.toFront(); // Ensure fade effect is on top
-
-		// Fade out to black
-		FadeTransition fadeOut = new FadeTransition(Duration.seconds(1.5), transitionScreen);
-		fadeOut.setFromValue(0);
-		fadeOut.setToValue(1);
-
-		// Pause before resetting
-		PauseTransition pause = new PauseTransition(Duration.seconds(1));
-
-		// Reset logic
-		Transition resetLogic = new Transition() {
-			{
-				setCycleDuration(Duration.seconds(0.1));
-			}
-
-			@Override
-			protected void interpolate(double frac) {
-				if (frac == 1.0) {
-					Platform.runLater(() -> {
-						// Remove all game objects
-						getChildren().remove(getPlayer());
-						getChildren().removeAll(blocks);
-						getChildren().removeAll(monsters);
-//						getChildren().removeAll(slimes);
-//						getChildren().removeAll(zombies);
-
-						blocks.clear();
-						monsters.clear();
-//						slimes.clear();
-//						zombies.clear();
-
-						// Regenerate world
-//						generateRandomBlocks();
-//						generateRandomLadder();
-						// generateRandomSlimes();
-						// generateRandomZombies();
-
-						// Reset player stats
-						player.setX(1080 / 2 - player.getWidth() / 2 - 16 * GameController.getScale());
-						player.setY(720 / 2 - player.getHeight() / 2 - player.getHeight() / 4
-								- 8 * GameController.getScale());
-						player.setLayoutX(player.getX());
-						player.setLayoutY(player.getY());
-						player.setAttacking(false);
-						player.setMining(false);
-						player.setCanMove(true);
-
-						// Reset player's health
-//						MainPane mainPane = (MainPane) mother;
-//						if (mainPane != null) {
-//							mainPane.getHBar().setBar(100); // Reset health to full
-//						}
-
-						// Ensure the player is added back
-						if (!getChildren().contains(player)) {
-							getChildren().add(player);
-						}
-					});
-				}
-			}
-		};
-
-		// Fade in after resetting
-		FadeTransition fadeIn = new FadeTransition(Duration.seconds(1.5), transitionScreen);
-		fadeIn.setFromValue(1);
-		fadeIn.setToValue(0);
-		fadeIn.setOnFinished(event -> {
-			player.setCanMove(true);
-			player.setDead(false);
-			player.setDying(false);
-		});
-
-		// Play reset sequence
-		SequentialTransition resetSequence = new SequentialTransition(fadeOut, pause, resetLogic, fadeIn);
-		resetSequence.play();
-
-	}
-
-	public static boolean isPass() {
-		return pass;
-	}
-
-	public static void setPass(boolean pass) {
-		GamePane.pass = pass;
-	}
-
-	public List<Block> getBlocks() {
-		return blocks;
-	}
-
-	public List<FloatingItem> getfloatingItems() {
-		return floatingItems;
-	}
-
-	public List<Monster> getMonsters() {
-		return monsters;
-	}
-
-//	public void setBlocks(List<Block> blocks) {
-//		this.blocks = blocks;
-//	}
-
-	public int[][] getMapBlock() {
-		return mapBlock;
-	}
-
-	public int getLadderX() {
-		return ladderX;
-	}
-
-	public int getLadderY() {
-		return ladderY;
-	}
-
-	public Player getPlayer() {
-		return player;
-	}
-
+    
+    
 }
