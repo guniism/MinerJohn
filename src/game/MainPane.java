@@ -64,6 +64,7 @@ public class MainPane extends Pane {
     		this.getChildren().removeAll(yesButton, noButton, bigBar, bigText, yesText, noText);
     		KeyboardController.setEsc(false);
     		GameController.goToStartPage();
+    		GameController.getGamePane().getIngamesound().stop();
     	});
     	yesText.setMouseTransparent(true);
     	noText.setMouseTransparent(true);

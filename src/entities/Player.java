@@ -3,6 +3,7 @@ package entities;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import audio.AudioController;
 import game.GameController;
 import game.Item;
 import javafx.animation.AnimationTimer;
@@ -402,7 +403,14 @@ public class Player extends Canvas {
 
         // Disable movement
         setCanMove(false);
-
+        
+      //stop ingame sound
+        GameController.getGamePane().getIngamesound().stop();
+        //play gameover sound
+        AudioController gameoverSound = new AudioController("gameover_sfx");
+        gameoverSound.setVolume(0.7f);
+        gameoverSound.play();
+        
         // Start death animation
         AnimationTimer deathAnimation = new AnimationTimer() {
             private int deathFrameCounter = 0;

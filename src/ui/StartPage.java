@@ -1,5 +1,6 @@
 package ui;
 
+import audio.AudioController;
 import game.GameController;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -11,20 +12,27 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class StartPage extends StackPane {
-
+	private AudioController menusound = new AudioController("menubgm_sfx");
+	
     public StartPage(Stage primaryStage) {
         this.setAlignment(Pos.CENTER);
-
-
+        
         MainMenuPane bg= new MainMenuPane();
         bg.setAlignment(Pos.CENTER);
         VBox buttonContainer = new VBox();
         buttonContainer.setAlignment(Pos.CENTER);
         this.setTranslateY(-23);
         MainMenuButton newGameButton = new MainMenuButton(0);
+        //play menu bgm
+        menusound.play();
+        menusound.setVolume(0.8f);
+        menusound.loop();
+        
         newGameButton.setOnMouseClicked(e -> {
             GameController.setUpScene(primaryStage);
             primaryStage.setScene(GameController.getScene());
+            //stop menubgm when start new game
+            menusound.stop();
         });
 
         MainMenuButton tutorialButton = new MainMenuButton(1);

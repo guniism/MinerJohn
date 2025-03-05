@@ -29,6 +29,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+import audio.AudioController;
+
 public class GamePane extends Pane {
 	private Map gameMap;
 	private Player player;
@@ -43,6 +45,8 @@ public class GamePane extends Pane {
 	private int ladderX;
 	private int ladderY;
 
+	private AudioController ingamesound = new AudioController("ingamebgm_sfx");
+	
 	public GamePane() {
 		this.gameMap = new Map();
 		this.player = new Player();
@@ -51,6 +55,10 @@ public class GamePane extends Pane {
 
 		this.playerCenterAbsX = this.player.getX() + this.getLayoutX() - 16 * GameController.getScale();
 		this.playerCenterAbsY = this.player.getY() + this.getLayoutY() - 8 * GameController.getScale();
+		
+		ingamesound.setVolume(0.8f);
+		ingamesound.play();
+        ingamesound.loop();
 		
 		transitionScreen = new Rectangle();
 		transitionScreen.setFill(Color.BLACK);
@@ -192,6 +200,11 @@ public class GamePane extends Pane {
 			System.out.println("player is Attacking");
 			player.setAttacking(true);
 			player.attack();
+			
+			//Play attack sound
+			AudioController swordSound = new AudioController("sword_sfx");
+	        swordSound.setVolume(0.8f);
+			swordSound.play();
 		}
 
 		if (player.getStamina() > 0) {
@@ -200,7 +213,11 @@ public class GamePane extends Pane {
 				System.out.println("player is Mining");
 				player.setMining(true);
 				player.mine();
-
+				
+				//play mining sound
+				AudioController mineSound = new AudioController("rock_sfx");
+				mineSound.setVolume(0.8f);
+		        mineSound.play();
 			}
 		} else {
 			System.out.println("Player has no stamina!");
@@ -626,6 +643,7 @@ public class GamePane extends Pane {
 			player.setCanMove(true);
 			player.setDead(false);
 			player.setDying(false);
+			ingamesound.play();
 		});
 
 		// Create a sequential transition that plays fade out, pause, reset logic, then
@@ -666,6 +684,8 @@ public class GamePane extends Pane {
 	public Player getPlayer() {
 		return player;
 	}
-
-
+	
+	public AudioController getIngamesound() {
+		return ingamesound;
+	}
 }
