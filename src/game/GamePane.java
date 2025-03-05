@@ -12,6 +12,8 @@ import javafx.animation.SequentialTransition;
 import javafx.animation.Transition;
 import javafx.application.Platform;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -23,7 +25,6 @@ import world.LadderUp;
 import world.Map;
 import world.Ore;
 import world.Pickaxeable;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -44,36 +45,39 @@ public class GamePane extends Pane {
 	private List<Monster> monsters;
 	private int ladderX;
 	private int ladderY;
-
+	private boolean end;
 	private AudioController ingamesound = new AudioController("ingamebgm_sfx");
-	
+
 	public GamePane() {
 		this.gameMap = new Map();
 		this.player = new Player();
 		this.blocks = new ArrayList<>();
 		this.getChildren().add(this.gameMap);
-
 		this.playerCenterAbsX = this.player.getX() + this.getLayoutX() - 16 * GameController.getScale();
 		this.playerCenterAbsY = this.player.getY() + this.getLayoutY() - 8 * GameController.getScale();
 		
+		
 		ingamesound.setVolume(0.8f);
 		ingamesound.play();
-        ingamesound.loop();
-		
+		ingamesound.loop();
+
 		transitionScreen = new Rectangle();
 		transitionScreen.setFill(Color.BLACK);
 		transitionScreen.setOpacity(0);
 		transitionScreen.setViewOrder(-1000);
 		transitionScreen.setVisible(false);
-		this.getChildren().add(transitionScreen);
+//		this.getChildren().add(transitionScreen);
+//		GameController.getMainPane().getChildren().add(transitionScreen);
 
 		generateNextMap();
-
+		
 		setupMouseHandler();
 		startTimer();
+
 	}
 
 	private void generateNextMap() {
+		
 		Random rand = new Random();
 		this.gameMap.setMap(rand.nextInt(3) + 1);
 
@@ -120,9 +124,10 @@ public class GamePane extends Pane {
 						this.mapBlock[i][j] = 2;
 					} else if (randomValue < p1 + p2 + p3 + p4) {
 						this.mapBlock[i][j] = 3;
-
-					} else {
+					} else if (randomValue < p1 + p2 + p3 + p4 + p5) {
 						this.mapBlock[i][j] = 4;
+					} else {
+						this.mapBlock[i][j] = 5;
 					}
 
 					Ore block = new Ore(this.mapBlock[i][j]);
@@ -166,9 +171,6 @@ public class GamePane extends Pane {
 		monsters = new ArrayList<Monster>();
 		generateRandomSlimes();
 		generateRandomZombies();
-//	    Slime slime = new Slime(5 * 16 * GameController.getScale(), 5 * 16 * GameController.getScale(), 2, 1, 1, player);
-//	    monsters.add(slime);
-//	    this.getChildren().add(slime);
 	}
 
 	public void createLadder(int gridX, int gridY) {
@@ -181,7 +183,6 @@ public class GamePane extends Pane {
 	}
 
 	private void setupMouseHandler() {
-		// Add event handler for mouse clicks
 		this.setOnMouseClicked(this::handleMouseClick);
 	}
 
@@ -190,34 +191,39 @@ public class GamePane extends Pane {
 		if (interactBlockClick(event)) {
 			return;
 		}
-
-		if (Player.getUsingItem() == null) {
+		Item usingItem = Player.getUsingItem();
+		if (usingItem == null) {
 			System.out.println("Do nothing");
 			return;
 		}
+		if (usingItem.getItemType() == 1) {
+			setPlayerHealth(player.getHealth() + usingItem.getIncreaseHealth());
+			setPlayerStamina(player.getStamina() + usingItem.getIncreaseStamina());
+			Player.useItem(Player.getUsingItem(), 1);
 
-		if (Player.getUsingItem().getRow() == 1 && Player.getUsingItem().getCol() == 4) {
+		}
+		if (usingItem.getRow() == 1 && usingItem.getCol() == 4) {
 			System.out.println("player is Attacking");
 			player.setAttacking(true);
 			player.attack();
-			
-			//Play attack sound
+
+			// Play attack sound
 			AudioController swordSound = new AudioController("sword_sfx");
-	        swordSound.setVolume(0.8f);
+			swordSound.setVolume(0.8f);
 			swordSound.play();
 		}
 
 		if (player.getStamina() > 0) {
 			// Only execute mining if ladder wasn’t clicked
-			if (Player.getUsingItem().getRow() == 0 && Player.getUsingItem().getCol() == 0 && !player.isMining()) {
+			if (usingItem.getRow() == 0 && usingItem.getCol() == 0 && !player.isMining()) {
 				System.out.println("player is Mining");
 				player.setMining(true);
 				player.mine();
-				
-				//play mining sound
+
+				// play mining sound
 				AudioController mineSound = new AudioController("rock_sfx");
 				mineSound.setVolume(0.8f);
-		        mineSound.play();
+				mineSound.play();
 			}
 		} else {
 			System.out.println("Player has no stamina!");
@@ -295,14 +301,13 @@ public class GamePane extends Pane {
 	}
 
 	private boolean canSpawnAt(int x, int y, int[][] map) {
-		// Check 3x3 surrounding area
 		for (int i = -1; i <= 1; i++) {
 			for (int j = -1; j <= 1; j++) {
 				int checkY = y + i;
 				int checkX = x + j;
 				if (checkY < 0 || checkY >= map.length || checkX < 0 || checkX >= map[0].length
 						|| map[checkY][checkX] != 0) {
-					return false; // Not a valid spawn location
+					return false;
 				}
 			}
 		}
@@ -313,7 +318,9 @@ public class GamePane extends Pane {
 		AnimationTimer timer = new AnimationTimer() {
 			@Override
 			public void handle(long now) {
-				update();
+				if(!player.isDead()) {
+					update();
+				}
 			}
 		};
 		timer.start();
@@ -325,7 +332,7 @@ public class GamePane extends Pane {
 		boolean movingUp = false;
 		boolean movingRight = false;
 		boolean movingLeft = false;
-
+		player.update();
 		if (player.canMove()) {
 			if (GameController.getKeyboardController().isMoveUp()) {
 				if (this.player.getY() >= 2 * 16 * GameController.getScale()
@@ -378,7 +385,7 @@ public class GamePane extends Pane {
 				Math.min(0, newLayoutY));
 		this.setLayoutX(newLayoutX);
 		this.setLayoutY(newLayoutY);
-
+		
 		this.player.setX(this.player.getX() + dx);
 		this.player.setY(this.player.getY() + dy);
 		this.player.setLayoutX(this.player.getX());
@@ -420,28 +427,30 @@ public class GamePane extends Pane {
 				}
 
 			}
-			if (playerFootGridX == itemCenGridX && playerFootGridY == itemCenGridY) {
-//				System.err.println("item over u");
-				Player.addItem(new Item(item.getRow(), item.getCol()), Player.containerGrid);
+			if (playerFootGridX == itemCenGridX && playerFootGridY == itemCenGridY
+					&& Player.addItem(new Item(item.getRow(), item.getCol()))) {
 				this.getChildren().remove(item);
 				iterator.remove();
-
 			}
 		}
 
 		// Update monster
 		for (Monster monster : getMonsters()) {
 			Platform.runLater(() -> monster.update());
-
 		}
 
-		if (player.getHealth() <= 0 && !player.isDying()) {
-			// Trigger the death animation. When it's complete, reset the game.
-			player.die(() -> {
-				resetGame();
-			});
-			return; // Skip further update processing while death animation plays
-		}
+//		if (player.getHealth() <= 0 && !player.isDying()) {
+//			// Trigger the death animation. When it's complete, reset the game.
+//	        GameController.getGamePane().getIngamesound().stop();
+//	        //play gameover sound
+//	        AudioController gameoverSound = new AudioController("gameover_sfx");
+//	        gameoverSound.setVolume(0.7f);
+//	        gameoverSound.play();
+//			player.die(() -> {
+//				resetGame();
+//			});
+//			return; // Skip further update processing while death animation plays
+//		}
 		adjustMonsterViewOrder();
 	}
 
@@ -508,7 +517,10 @@ public class GamePane extends Pane {
 		return false; // No collision
 	}
 
+
+	
 	public void enterNextFloor() {
+
 		System.out.println("Entering next floor...");
 		updateOverlaySize();
 		transitionScreen.setVisible(true);
@@ -532,13 +544,10 @@ public class GamePane extends Pane {
 						getChildren().removeAll(floatingItems);
 						getChildren().removeAll(blocks);
 						getChildren().removeAll(monsters);
-
 						floatingItems.clear();
 						blocks.clear();
 						monsters.clear();
-
 						generateNextMap();
-
 						if (!getChildren().contains(player)) {
 							getChildren().add(player);
 						}
@@ -557,47 +566,18 @@ public class GamePane extends Pane {
 
 		SequentialTransition transition = new SequentialTransition(fadeIn, pause, resetFloor, fadeOut);
 		transition.play();
+
 	}
 
-	private void updateOverlaySize() {
-		transitionScreen.setWidth(this.getWidth());
-		transitionScreen.setHeight(this.getHeight());
-		transitionScreen.toFront(); // Ensure it's on top
-	}
-
-	public void reducePlayerHealth(int damage) {
-		// Prevent taking damage if already dead
-		if (player.isDead())
-			return;
-		setPlayerHealth(player.getHealth() - damage);
-	}
-
-	public void setPlayerHealth(int health) {
-		player.setHealth(health);
-		GameController.getMainPane().setHBar(player.getHealth());
-	}
-
-	public void setPlayerStamina(int stamina) {
-		player.setStamina(stamina);
-		GameController.getMainPane().setSBar(player.getStamina());
-	}
-
-	private void resetGame() {
+	public void resetGame() {
 		System.out.println("Resetting game...");
-		// If mother is not a MainPane, remove the cast or adjust accordingly.
-		// MainPane mainPane = (MainPane) mother;
-
-		// Update overlay size to cover entire game area
 		updateOverlaySize();
 		transitionScreen.toFront();
 		transitionScreen.setVisible(true);
-
-		// Fade out to black (overlay goes from transparent to opaque)
 		FadeTransition fadeOut = new FadeTransition(Duration.seconds(1.5), transitionScreen);
 		fadeOut.setFromValue(0);
 		fadeOut.setToValue(1);
 
-		// Pause for a moment while the screen is fully black
 		PauseTransition pause = new PauseTransition(Duration.seconds(1));
 
 		// Reset logic – remove all game objects and generate new ones
@@ -609,30 +589,26 @@ public class GamePane extends Pane {
 			@Override
 			protected void interpolate(double frac) {
 				if (frac == 1.0) {
-					Platform.runLater(() -> {
-						// Remove game objects from the pane
+					Platform.runLater(() -> {			
 						getChildren().remove(getPlayer());
 						getChildren().removeAll(blocks);
 						getChildren().removeAll(monsters);
-
 						blocks.clear();
 						monsters.clear();
-
-						// Regenerate the world
 						generateNextMap();
-
-						// Reset player's stats
-						setPlayerHealth(40);
-						setPlayerStamina(60);
-
-						// Ensure the player is added back
+						setPlayerHealth(player.getMaxHealth());
+						setPlayerStamina(player.getMaxStamina());					
+						MainPane.setFloorNum(1);
 						if (!getChildren().contains(player)) {
 							getChildren().add(player);
 						}
+						player.setDead(false);
+						player.setDying(false);
 					});
 				}
 			}
 		};
+
 
 		// Fade in from black (overlay goes from opaque to transparent)
 		FadeTransition fadeIn = new FadeTransition(Duration.seconds(1.5), transitionScreen);
@@ -640,9 +616,23 @@ public class GamePane extends Pane {
 		fadeIn.setToValue(0);
 		fadeIn.setOnFinished(event -> {
 			transitionScreen.setVisible(false);
+//			getChildren().remove(getPlayer());
+//			getChildren().removeAll(blocks);
+//			getChildren().removeAll(monsters);
+//			blocks.clear();
+//			monsters.clear();
+//			generateNextMap();
+//			setPlayerHealth(player.getMaxHealth());
+//			setPlayerStamina(player.getMaxStamina());					
+//			MainPane.setFloorNum(1);
+//			if (!getChildren().contains(player)) {
+//				getChildren().add(player);
+//			}
+//			player.setCanMove(true);
+//			player.setDead(false);
+//			player.setDying(false);
+//			ingamesound.play();
 			player.setCanMove(true);
-			player.setDead(false);
-			player.setDying(false);
 			ingamesound.play();
 		});
 
@@ -650,8 +640,32 @@ public class GamePane extends Pane {
 		// fade in
 		SequentialTransition resetSequence = new SequentialTransition(fadeOut, pause, resetLogic, fadeIn);
 		resetSequence.play();
+		
+		
 	}
 
+	private void updateOverlaySize() {
+		transitionScreen.setWidth(GameController.getScreenWidth());
+		transitionScreen.setHeight(GameController.getScreenHeight());
+		transitionScreen.toFront();
+	}
+
+	public void reducePlayerHealth(int damage) {
+		if (player.isDead())
+			return;
+		setPlayerHealth(player.getHealth() - damage);
+	}
+
+	public void setPlayerHealth(int health) {
+		player.setHealth(health);
+//		GameController.getMainPane().createResult();
+		GameController.getMainPane().setHBar(player.getHealth());
+	}
+
+	public void setPlayerStamina(int stamina) {
+		player.setStamina(stamina);
+		GameController.getMainPane().setSBar(player.getStamina());
+	}
 
 	public List<Block> getBlocks() {
 		return blocks;
@@ -664,10 +678,6 @@ public class GamePane extends Pane {
 	public List<Monster> getMonsters() {
 		return monsters;
 	}
-
-//	public void setBlocks(List<Block> blocks) {
-//		this.blocks = blocks;
-//	}
 
 	public int[][] getMapBlock() {
 		return mapBlock;
@@ -684,8 +694,12 @@ public class GamePane extends Pane {
 	public Player getPlayer() {
 		return player;
 	}
-	
+
 	public AudioController getIngamesound() {
 		return ingamesound;
+	}
+
+	public Rectangle getTransitionScreen() {
+		return transitionScreen;
 	}
 }

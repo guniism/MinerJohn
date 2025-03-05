@@ -6,6 +6,7 @@ import java.util.Iterator;
 import audio.AudioController;
 import game.GameController;
 import game.Item;
+import game.MainPane;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
@@ -16,7 +17,7 @@ import world.Block;
 import world.Ore;
 import world.Pickaxeable;
 
-public class Player extends Canvas {
+public class Player extends Character {
     private final int WIDTH;
     private final int HEIGHT;
     private final int MAX_HEALTH;
@@ -53,7 +54,7 @@ public class Player extends Canvas {
     private final int deathFrameHeight = 32;
     private int deathFrameIndex = 0;
     private int deathFrameDelay = 15;
-    private int deathFrameCounter = 0;
+//    private int deathFrameCounter = 0;
     private boolean isDying = false;
     private boolean isDead = false;
     // Direction
@@ -77,14 +78,14 @@ public class Player extends Canvas {
     private int attackingFrameCounter = 0;
     
     private static Item usingItem;
-
-    public static ArrayList<ArrayList<Item>> Inventory;
-    public static ContainerPane[][] containerGrid= new ContainerPane[5][5];
+    private static ArrayList<ArrayList<Item>> Inventory;
+    private static ContainerPane[][] containerGrid = new ContainerPane[5][5];
 
     public Player() {
+    	super(516, 336, 0);
         WIDTH = frameWidth * GameController.getScale();
         HEIGHT = frameHeight * GameController.getScale();
-        MAX_HEALTH = 30;
+        MAX_HEALTH = 1;
         MAX_STAMINA = 60;
         setSpeed(GameController.getScale());
         setX(1080 / 2 - WIDTH / 2);
@@ -92,7 +93,6 @@ public class Player extends Canvas {
         setHealth(MAX_HEALTH);
         setStamina(MAX_STAMINA);
         
-        // Load sprite sheets
         String playerPath = ClassLoader.getSystemResource("boy.png").toString();
         spriteSheet = new Image(playerPath);
         
@@ -103,7 +103,7 @@ public class Player extends Canvas {
         attackingSpriteSheet = new Image(attackingPath);
         
         String deadPath = ClassLoader.getSystemResource("boy-dead.png").toString();
-        deathSpriteSheet = new Image(deadPath); // Load death animation
+        deathSpriteSheet = new Image(deadPath);
         
         // Set canvas to the largest of the animations to accommodate all
         this.setWidth(Math.max(Math.max(WIDTH, miningFrameWidth * GameController.getScale()), 
@@ -128,11 +128,10 @@ public class Player extends Canvas {
                 containerGrid[i][j]=null;
             }
         }
-        setupAnimationTimer();
-        draw(); // Draw initial frame
+        draw();
     }
     
-    public static boolean addItem(Item item, ContainerPane[][] containerGrid) {
+    public static boolean addItem(Item item) {
         for (int row = 0; row < 5; row++) {
             for (int col = 0; col < 5; col++) {
                 if (Inventory.get(row).get(col) == null) {
@@ -149,7 +148,7 @@ public class Player extends Canvas {
         return false;
     }
 
-    public static boolean useItem(Item item, int amount, ContainerPane[][] containerGrid) {
+    public static boolean useItem(Item item, int amount) {
         int count = 0;
 
         for (int row = 4; row >=0; row--) {
@@ -177,79 +176,64 @@ public class Player extends Canvas {
         }
         return true;
     }
-
-    public static ArrayList<ArrayList<Item>> getInventory() {
-        return Inventory;
-    }
-    
-    public static Item getUsingItem() {
-        return usingItem;
-    }
-
-    public static void setUsingItem(Item usingItem) {
-        Player.usingItem = usingItem;
-    }
-
-    private void setupAnimationTimer() {
-        animationTimer = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                if (isAttacking) {
-                    attackingFrameCounter++;
-                    if (attackingFrameCounter >= attackingFrameDelay) {
-                        attackingFrameCounter = 0;
-                        attackingFrameIndex = (attackingFrameIndex + 1) % attackingTotalFrames;
-                        
-                        // If we've completed the animation cycle, stop attacking
-                        if (attackingFrameIndex == 0) {
-                            isAttacking = false;
-                            setCanMove(true);
-                        }
-                        
-                        if (attackingFrameIndex == 2) {
-                        	useSword();
-                        }
-                    }
-                } else if (isMining) {
-                    miningFrameCounter++;
-                    if (miningFrameCounter >= miningFrameDelay) {
-                        miningFrameCounter = 0;
-                        miningFrameIndex = (miningFrameIndex + 1) % miningTotalFrames;
-                        // If we've completed the animation cycle, stop mining
-                        if (miningFrameIndex == 0) {
-                            isMining = false;
-                            setCanMove(true);
-                            usePickaxe();
-                        }
-                    }
-                } else {
-                    isMoving = movingDown || movingUp || movingRight || movingLeft;
-                    
-                    if (isMoving) {
-                        frameCounter++;
-                        if (frameCounter >= frameDelay) {
-                            frameCounter = 0;
-                            frameIndex = (frameIndex + 1) % totalFrames;
-                        }
-                        
-                        if (movingDown) 
-                            lastDirection = "down";
-                        else if (movingUp) 
-                            lastDirection = "up";
-                        else if (movingRight) 
-                            lastDirection = "right";
-                        else if (movingLeft) 
-                            lastDirection = "left";
-                    } else {
-                        frameIndex = 0;
-                    }
+  
+	@Override
+	public void update() {
+		// TODO Auto-generated method stub
+        if (isAttacking) {
+            attackingFrameCounter++;
+            if (attackingFrameCounter >= attackingFrameDelay) {
+                attackingFrameCounter = 0;
+                attackingFrameIndex = (attackingFrameIndex + 1) % attackingTotalFrames;
+                
+                // If we've completed the animation cycle, stop attacking
+                if (attackingFrameIndex == 0) {
+                    isAttacking = false;
+                    setCanMove(true);
                 }
                 
-                draw(); // Draw the current frame
+                if (attackingFrameIndex == 2) {
+                	useSword();
+                }
             }
-        };
-        animationTimer.start();
-    }
+        } else if (isMining) {
+            miningFrameCounter++;
+            if (miningFrameCounter >= miningFrameDelay) {
+                miningFrameCounter = 0;
+                miningFrameIndex = (miningFrameIndex + 1) % miningTotalFrames;
+                // If we've completed the animation cycle, stop mining
+                if (miningFrameIndex == 0) {
+                    isMining = false;
+                    setCanMove(true);
+                    usePickaxe();
+                }
+            }
+        } else {
+            isMoving = movingDown || movingUp || movingRight || movingLeft;
+            
+            if (isMoving) {
+                frameCounter++;
+                if (frameCounter >= frameDelay) {
+                    frameCounter = 0;
+                    frameIndex = (frameIndex + 1) % totalFrames;
+                }
+                
+                if (movingDown) 
+                    lastDirection = "down";
+                else if (movingUp) 
+                    lastDirection = "up";
+                else if (movingRight) 
+                    lastDirection = "right";
+                else if (movingLeft) 
+                    lastDirection = "left";
+            } else {
+                frameIndex = 0;
+            }
+        }
+        
+        draw(); // Draw the current frame
+	}
+	
 
     public void draw() {
         GraphicsContext gc = this.getGraphicsContext2D();
@@ -310,7 +294,6 @@ public class Player extends Canvas {
     private void drawMiningAnimation(GraphicsContext gc) {
         int row;
         
-        // Select the correct row based on direction
         switch (lastDirection) {
             case "up":
                 row = 1;
@@ -319,7 +302,7 @@ public class Player extends Canvas {
                 row = 2;
                 break;
             case "left":
-                row = 2; // Uses right sprites but flipped
+                row = 2;
                 break;
             case "down":
             default:
@@ -352,8 +335,6 @@ public class Player extends Canvas {
     
     private void drawAttackingAnimation(GraphicsContext gc) {
         int row;
-        
-        // Select the correct row based on direction
         switch (lastDirection) {
             case "up":
                 row = 1;
@@ -362,7 +343,7 @@ public class Player extends Canvas {
                 row = 2;
                 break;
             case "left":
-                row = 2; // Uses right sprites but flipped
+                row = 2;
                 break;
             case "down":
             default:
@@ -393,49 +374,37 @@ public class Player extends Canvas {
         }
     }
     
-    public void die(Runnable onDeathComplete) {
-        if (isDead) return; // Prevent multiple deaths
-        isDead = true; // Mark player as dead
+    public void die() {
+	  if (isDead) return; // Prevent multiple deaths
+	  isDead = true; // Mark player as dead
+	
+	  System.out.println("Playing death animation...");
+	  isDying = true;
+	  deathFrameIndex = 0; // Reset animation
+	
+	  setCanMove(false);
 
-        System.out.println("Playing death animation...");
-        isDying = true;
-        deathFrameIndex = 0; // Reset animation
-
-        // Disable movement
-        setCanMove(false);
-        
-      //stop ingame sound
-        GameController.getGamePane().getIngamesound().stop();
-        //play gameover sound
-        AudioController gameoverSound = new AudioController("gameover_sfx");
-        gameoverSound.setVolume(0.7f);
-        gameoverSound.play();
-        
-        // Start death animation
-        AnimationTimer deathAnimation = new AnimationTimer() {
-            private int deathFrameCounter = 0;
-
-            @Override
-            public void handle(long now) {
-                deathFrameCounter++;
-                if (deathFrameCounter >= deathFrameDelay) {
-                    deathFrameCounter = 0;
-                    if (deathFrameIndex < deathTotalFrames - 1) {
-                        deathFrameIndex++;
-                    } else {
-                        stop(); // Stop animation when complete
-                        Platform.runLater(() -> {
-                            onDeathComplete.run();
-                            isDead = false; // Reset for next life
-                        });
-                    }
-                }
-                draw(); // Keep updating the frame
-            }
-        };
-
-        deathAnimation.start();
-    }
+	  // Start death animation
+	  AnimationTimer deathAnimation = new AnimationTimer() {
+	      private int deathFrameCounter = 0;
+	
+	      @Override
+	      public void handle(long now) {
+	          deathFrameCounter++;
+	          if (deathFrameCounter >= deathFrameDelay) {
+	              deathFrameCounter = 0;
+	              if (deathFrameIndex < deathTotalFrames - 1) {
+	                  deathFrameIndex++;
+	              } else {
+	                  stop(); // Stop animation when complete
+	              }
+	          }
+	          draw(); // Keep updating the frame
+	      }
+	  };
+	
+	  deathAnimation.start();
+	}  
 
     
     private void drawDeathAnimation(GraphicsContext gc) {
@@ -466,7 +435,6 @@ public class Player extends Canvas {
             setCanMove(false);
             isAttacking = true;
             
-            // Reset frame index to start animation from beginning
             attackingFrameIndex = 0;
             attackingFrameCounter = 0;
         }
@@ -477,7 +445,6 @@ public class Player extends Canvas {
             setCanMove(false);
             isMining = true;
             
-            // Reset frame index to start animation from beginning
             miningFrameIndex = 0;
             miningFrameCounter = 0;
         }
@@ -490,8 +457,6 @@ public class Player extends Canvas {
     	    int damage = 1;
     	    if (monster.getAttack(damage)) {
     	        System.err.println("monster die");
-//    	        iterator.remove(); // Safely remove from the list
-//    	        GameController.getGamePane().getChildren().remove(slime); // Remove from UI
     	    }
     	}
     }
@@ -560,17 +525,13 @@ public class Player extends Canvas {
 							iterator.remove();
 							GameController.getGamePane().getChildren().remove(this);
 							if((int) targetMineBlockX == GameController.getGamePane().getLadderX() && (int) targetMineBlockY == GameController.getGamePane().getLadderY()) {
-								
 								GameController.getGamePane().createLadder((int) targetMineBlockX, (int) targetMineBlockY);
-								System.out.println("Ladder created");		
-								
-								
+//								System.out.println("Ladder created");		
 							}
 							GameController.getGamePane().getChildren().add(dropItem);
 							GameController.getGamePane().getfloatingItems().add(dropItem);
 							GameController.getGamePane().getChildren().remove(block);
 							GameController.getGamePane().getMapBlock()[(int) targetMineBlockY][(int) targetMineBlockX] = 0;
-							
 							GameController.getGamePane().getChildren().add(this);
 							return;
 							
@@ -580,8 +541,6 @@ public class Player extends Canvas {
 			}
 		}
     }
-    
-
     
     public void setMovingDown(boolean movingDown) {
         this.movingDown = movingDown;
@@ -597,30 +556,6 @@ public class Player extends Canvas {
     
     public void setMovingLeft(boolean movingLeft) {
         this.movingLeft = movingLeft;
-    }
-
-    public double getX() {
-        return x;
-    }
-
-    public void setX(double d) {
-        this.x = d;
-    }
-
-    public double getY() {
-        return y;
-    }
-
-    public void setY(double y) {
-        this.y = y;
-    }
-
-    public int getSpeed() {
-        return speed;
-    }
-
-    public void setSpeed(int speed) {
-        this.speed = speed;
     }
     
     public String getLastDirection() {
@@ -678,7 +613,13 @@ public class Player extends Canvas {
 	public void setHealth(int health) {
 		if(health <= 0) {
 			this.health = 0;
-			//dead
+			GameController.getMainPane().createResult();
+	        GameController.getGamePane().getIngamesound().stop();
+	        //play gameover sound
+	        AudioController gameoverSound = new AudioController("gameover_sfx");
+	        gameoverSound.setVolume(0.7f);
+	        gameoverSound.play();
+	        die();
 		}
 		else if(health > MAX_HEALTH) {
 			this.health = MAX_HEALTH;
@@ -713,6 +654,20 @@ public class Player extends Canvas {
 		return MAX_STAMINA;
 	}
 
+	public static ContainerPane[][] getContainerGrid() {
+		return containerGrid;
+	}
+
+    public static ArrayList<ArrayList<Item>> getInventory() {
+        return Inventory;
+    }
     
+    public static Item getUsingItem() {
+        return usingItem;
+    }
+
+    public static void setUsingItem(Item usingItem) {
+        Player.usingItem = usingItem;
+    }
     
 }
