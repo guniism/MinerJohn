@@ -38,7 +38,7 @@ public class Zombie extends Monster {
     private final int bitingFrameWidth = 16;
     private final int bitingFrameHeight = 32;
     private int bitingFrameIndex = 0;
-    private int bitingFrameDelay = 15;
+    private int bitingFrameDelay = 30;
     private int bitingFrameCounter = 0;
     
     // Field to lock the orientation of the death animation.
@@ -322,7 +322,7 @@ public class Zombie extends Monster {
         if (deathFacing.equals("left")) {
             gc.save();
             gc.translate(drawX + deadFrameWidth * GameController.getScale() + 8 * GameController.getScale(), drawY);
-            gc.scale(-1, 1);
+            gc.scale(-1, 1);     
             gc.drawImage(zombieDeathSpriteSheet, srcX, srcY, deadFrameWidth, deadFrameHeight,
                          0, 0, deadFrameWidth * GameController.getScale(), deadFrameHeight * GameController.getScale());
             gc.restore();
@@ -357,7 +357,7 @@ public class Zombie extends Monster {
                          drawX, drawY, bitingFrameWidth * GameController.getScale(), bitingFrameHeight * GameController.getScale());
         }
         bitingFrameCounter++;
-        if (bitingFrameCounter >= bitingFrameDelay * 3) {
+        if (bitingFrameCounter >= bitingFrameDelay) {
             bitingFrameCounter = 0;
             bitingFrameIndex++;
             if (bitingFrameIndex >= bitingTotalFrames) {
@@ -425,6 +425,13 @@ public class Zombie extends Monster {
         isBiting = false;
         deathFacing = lastDirection; // Lock the death facing
         setAnimation("death");
+		if(lastDirection.equals("left")) {
+			this.setLayoutX(this.getLayoutX() - 10 * GameController.getScale());
+		}
+		else {
+			this.setLayoutX(this.getLayoutX() - 2 * GameController.getScale());
+		}
+		this.setLayoutY(this.getLayoutY() + GameController.getScale());
     }
 
     public void takeDamage(int damage) {

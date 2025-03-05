@@ -16,7 +16,6 @@ public abstract class Monster extends Character {
         this.damage = Math.max(damage, 1);
     }
     
-    public abstract void update();
     public abstract void staggerAnimation();
     public abstract void playDeathAnimation();
     

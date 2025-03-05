@@ -21,7 +21,7 @@ public class Slime extends Monster {
     private int frameDelay = 15; 
     private int frameCounter = 0;
 
-    private boolean movingUp, movingDown, movingLeft, movingRight;
+//    private boolean movingUp, movingDown, movingLeft, movingRight;
     private boolean jumping;
     private double jumpSpeed = 1;
     private double targetX, targetY;
@@ -126,24 +126,24 @@ public class Slime extends Monster {
 
         if (Math.abs(playerX - slimeX) > Math.abs(playerY - slimeY)) {
             if (playerX > slimeX) {
-                movingRight = true; movingLeft = movingUp = movingDown = false;
+//                movingRight = true; movingLeft = movingUp = movingDown = false;
                 setAnimation("jump_right");
                 targetX = slimeX + 50;
                 targetY = slimeY;
             } else {
-                movingLeft = true; movingRight = movingUp = movingDown = false;
+//                movingLeft = true; movingRight = movingUp = movingDown = false;
                 setAnimation("jump_left");
                 targetX = slimeX - 50;
                 targetY = slimeY;
             }
         } else {
             if (playerY > slimeY) {
-                movingDown = true; movingUp = movingLeft = movingRight = false;
+//                movingDown = true; movingUp = movingLeft = movingRight = false;
                 setAnimation("jump_down");
                 targetX = slimeX;
                 targetY = slimeY + 50;
             } else {
-                movingUp = true; movingDown = movingLeft = movingRight = false;
+//                movingUp = true; movingDown = movingLeft = movingRight = false;
                 setAnimation("jump_up");
                 targetX = slimeX;
                 targetY = slimeY - 50;

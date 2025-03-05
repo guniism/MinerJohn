@@ -12,7 +12,9 @@ public abstract class Character extends Canvas {
         this.y = y;
         this.speed = speed;
     }
-
+    
+    public abstract void update();
+    
     // Abstract method for drawing character (must be implemented by subclasses)
     protected abstract void draw();
 
