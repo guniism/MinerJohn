@@ -478,9 +478,9 @@ public class Player extends Canvas {
     public void useSword() {
     	Iterator<Monster> iterator = GameController.getGamePane().getMonsters().iterator();
     	while (iterator.hasNext()) {
-    	    Monster slime = iterator.next();
+    	    Monster monster = iterator.next();
     	    int damage = 1;
-    	    if (slime.getAttack(damage)) {
+    	    if (monster.getAttack(damage)) {
     	        System.err.println("monster die");
 //    	        iterator.remove(); // Safely remove from the list
 //    	        GameController.getGamePane().getChildren().remove(slime); // Remove from UI

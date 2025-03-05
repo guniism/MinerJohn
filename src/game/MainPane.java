@@ -95,6 +95,10 @@ public class MainPane extends Pane {
 		SBar.setBar(value);
 	}
 
+	public Object getHBar() {
+		return HBar;
+	}
+	
 
 
 	

@@ -47,7 +47,7 @@ public class GamePane extends Pane {
 	private List<FloatingItem> floatingItems = new ArrayList<>();
 	private Rectangle transitionScreen;
 //	private static final int ROCK_COUNT = 10; // Number of randomly placed rocks
-	private int SLIME_COUNT = 2, ZOMBIE_COUNT = 0;
+	private int SLIME_COUNT = 3, ZOMBIE_COUNT = 3;
 	private List<Monster> monsters;
 	private int ladderX;
 	private int ladderY;
@@ -209,26 +209,24 @@ public class GamePane extends Pane {
 			return;
 		}
 
-		
 		if (Player.getUsingItem().getRow() == 1 && Player.getUsingItem().getCol() == 4) {
 			System.out.println("player is Attacking");
 			player.setAttacking(true);
 			player.attack();
 		}
-		
+
 		if (player.getStamina() > 0) {
 			// Only execute mining if ladder wasn’t clicked
 			if (Player.getUsingItem().getRow() == 0 && Player.getUsingItem().getCol() == 0 && !player.isMining()) {
 				System.out.println("player is Mining");
 				player.setMining(true);
 				player.mine();
-				
+
 			}
 		} else {
 			System.out.println("Player has no stamina!");
 		}
 
-	
 	}
 
 	private boolean interactBlockClick(MouseEvent event) {
@@ -253,19 +251,27 @@ public class GamePane extends Pane {
 
 	private void generateRandomSlimes() {
 		Random random = new Random();
+		final int MAX_ATTEMPTS = 100;
 		for (int i = 0; i < SLIME_COUNT; i++) {
-			int slimeY, slimeX;
-
-			do {
+			int slimeX = 0;
+			int slimeY = 0;
+			int attempts = 0;
+			while (attempts < MAX_ATTEMPTS) {
 				slimeY = random.nextInt(5, mapMonster.length - 4);
 				slimeX = random.nextInt(5, mapMonster[0].length - 4);
-			} while (!canSpawnAt(slimeX, slimeY, mapMonster));
+				if (canSpawnAt(slimeX, slimeY, mapMonster)) {
+					break;
+				}
+				attempts++;
+			}
+			if (attempts >= MAX_ATTEMPTS) {
+				System.out.println("ไม่พบตำแหน่ง spawn สำหรับ Slime หลัง " + MAX_ATTEMPTS + " ครั้ง");
+				continue; // ข้ามการ spawn monster นี้
+			}
 			mapMonster[slimeY][slimeX] = -3;
-			slimeY *= GameController.getScale() * 16;
-			slimeX *= GameController.getScale() * 16;
-
-			Slime slime = new Slime(slimeX, slimeY, 2, 1, 1, player);
-
+			int drawX = slimeX * GameController.getScale() * 16;
+			int drawY = slimeY * GameController.getScale() * 16;
+			Slime slime = new Slime(drawX, drawY, 2, 1, 1, player);
 			monsters.add(slime);
 			this.getChildren().add(slime);
 		}
@@ -273,19 +279,27 @@ public class GamePane extends Pane {
 
 	private void generateRandomZombies() {
 		Random random = new Random();
+		final int MAX_ATTEMPTS = 100;
 		for (int i = 0; i < ZOMBIE_COUNT; i++) {
-			int zombieY, zombieX;
-
-			do {
+			int zombieX = 0;
+			int zombieY = 0;
+			int attempts = 0;
+			while (attempts < MAX_ATTEMPTS) {
 				zombieY = random.nextInt(5, mapMonster.length - 4);
 				zombieX = random.nextInt(5, mapMonster[0].length - 4);
-			} while (!canSpawnAt(zombieX, zombieY, mapMonster));
+				if (canSpawnAt(zombieX, zombieY, mapMonster)) {
+					break;
+				}
+				attempts++;
+			}
+			if (attempts >= MAX_ATTEMPTS) {
+				System.out.println("ไม่พบตำแหน่ง spawn สำหรับ Zombie หลัง " + MAX_ATTEMPTS + " ครั้ง");
+				continue;
+			}
 			mapMonster[zombieY][zombieX] = -3;
-			zombieY *= GameController.getScale() * 16;
-			zombieX *= GameController.getScale() * 16;
-
-			Zombie zombie = new Zombie(zombieX, zombieY, 1, 5, 1, player);
-
+			int drawX = zombieX * GameController.getScale() * 16;
+			int drawY = zombieY * GameController.getScale() * 16;
+			Zombie zombie = new Zombie(drawX, drawY, 2, 5, 1, player);
 			monsters.add(zombie);
 			this.getChildren().add(zombie);
 		}
@@ -469,29 +483,50 @@ public class GamePane extends Pane {
 			Platform.runLater(() -> monster.update());
 
 		}
+
+		if (player.getHealth() <= 0 && !player.isDying()) {
+			// Trigger the death animation. When it's complete, reset the game.
+			player.die(() -> {
+				resetGame();
+			});
+			return; // Skip further update processing while death animation plays
+		}
+		adjustMonsterViewOrder();
 	}
 
-//	private void adjustViewOrder() {
-//		for (Zombie zombie : zombies) {
-//			if (player.getY() + 1 * GameController.getScale() >= zombie.getY()) {
-//				player.setViewOrder(-501); // player in front
-//				zombie.setViewOrder(-500); // zombie behind player
-//			} else {
-//				player.setViewOrder(-500); // player behind zombie
-//				zombie.setViewOrder(-501); // zombie in front
-//			}
-//		}
-//
-//		for (Slime slime : slimes) {
-//			if (player.getY() >= slime.getY()) {
-//				player.setViewOrder(-501);
-//				slime.setViewOrder(-500);
-//			} else {
-//				player.setViewOrder(-500);
-//				slime.setViewOrder(-501);
-//			}
-//		}
-//	}
+	private void adjustMonsterViewOrder() {
+	    for (Monster monster : getMonsters()) {
+	        if (monster instanceof Zombie) {
+	            // For Zombies, add an extra offset (1 * scale) to the player's Y position
+	            if (player.getY() + 16 * GameController.getScale() >= monster.getY()) {
+	                player.setViewOrder(-501);  // Player in front
+	                monster.setViewOrder(-500); // Zombie behind
+	            } else {
+	                player.setViewOrder(-500);  // Player behind
+	                monster.setViewOrder(-501); // Zombie in front
+	            }
+	        } else if (monster instanceof Slime) {
+	            // For Slimes, use a direct comparison
+	            if (player.getY() + 16 * GameController.getScale() >= monster.getY()) {
+	                player.setViewOrder(-501);  // Player in front
+	                monster.setViewOrder(-500); // Slime behind
+	            } else {
+	                player.setViewOrder(-500);  // Player behind
+	                monster.setViewOrder(-501); // Slime in front
+	            }
+	        } else {
+	            // For other monsters, you can define a default behavior
+	            if (player.getY() >= monster.getY()) {
+	                player.setViewOrder(-501);
+	                monster.setViewOrder(-500);
+	            } else {
+	                player.setViewOrder(-500);
+	                monster.setViewOrder(-501);
+	            }
+	        }
+	    }
+	}
+
 
 	// Collision Detection for Random Rocks
 	private boolean isColliding(double dx, double dy) {
@@ -546,9 +581,11 @@ public class GamePane extends Pane {
 						getChildren().remove(getPlayer());
 						getChildren().removeAll(floatingItems);
 						getChildren().removeAll(blocks);
+						getChildren().removeAll(monsters);
 
 						floatingItems.clear();
 						blocks.clear();
+						monsters.clear();
 
 						generateNextMap();
 
@@ -597,21 +634,23 @@ public class GamePane extends Pane {
 
 	private void resetGame() {
 		System.out.println("Resetting game...");
-		MainPane mainPane = (MainPane) mother;
+		// If mother is not a MainPane, remove the cast or adjust accordingly.
+		// MainPane mainPane = (MainPane) mother;
 
-		// ✅ Ensure transitionScreen covers the entire game area
+		// Update overlay size to cover entire game area
 		updateOverlaySize();
-		transitionScreen.toFront(); // Ensure fade effect is on top
+		transitionScreen.toFront();
+		transitionScreen.setVisible(true);
 
-		// Fade out to black
+		// Fade out to black (overlay goes from transparent to opaque)
 		FadeTransition fadeOut = new FadeTransition(Duration.seconds(1.5), transitionScreen);
 		fadeOut.setFromValue(0);
 		fadeOut.setToValue(1);
 
-		// Pause before resetting
+		// Pause for a moment while the screen is fully black
 		PauseTransition pause = new PauseTransition(Duration.seconds(1));
 
-		// Reset logic
+		// Reset logic – remove all game objects and generate new ones
 		Transition resetLogic = new Transition() {
 			{
 				setCycleDuration(Duration.seconds(0.1));
@@ -621,39 +660,20 @@ public class GamePane extends Pane {
 			protected void interpolate(double frac) {
 				if (frac == 1.0) {
 					Platform.runLater(() -> {
-						// Remove all game objects
+						// Remove game objects from the pane
 						getChildren().remove(getPlayer());
 						getChildren().removeAll(blocks);
 						getChildren().removeAll(monsters);
-//						getChildren().removeAll(slimes);
-//						getChildren().removeAll(zombies);
 
 						blocks.clear();
 						monsters.clear();
-//						slimes.clear();
-//						zombies.clear();
 
-						// Regenerate world
-//						generateRandomBlocks();
-//						generateRandomLadder();
-						// generateRandomSlimes();
-						// generateRandomZombies();
+						// Regenerate the world
+						generateNextMap();
 
-						// Reset player stats
-						player.setX(1080 / 2 - player.getWidth() / 2 - 16 * GameController.getScale());
-						player.setY(720 / 2 - player.getHeight() / 2 - player.getHeight() / 4
-								- 8 * GameController.getScale());
-						player.setLayoutX(player.getX());
-						player.setLayoutY(player.getY());
-						player.setAttacking(false);
-						player.setMining(false);
-						player.setCanMove(true);
-
-						// Reset player's health
-//						MainPane mainPane = (MainPane) mother;
-//						if (mainPane != null) {
-//							mainPane.getHBar().setBar(100); // Reset health to full
-//						}
+						// Reset player's stats
+						setPlayerHealth(40);
+						setPlayerStamina(60);
 
 						// Ensure the player is added back
 						if (!getChildren().contains(player)) {
@@ -664,20 +684,21 @@ public class GamePane extends Pane {
 			}
 		};
 
-		// Fade in after resetting
+		// Fade in from black (overlay goes from opaque to transparent)
 		FadeTransition fadeIn = new FadeTransition(Duration.seconds(1.5), transitionScreen);
 		fadeIn.setFromValue(1);
 		fadeIn.setToValue(0);
 		fadeIn.setOnFinished(event -> {
+			transitionScreen.setVisible(false);
 			player.setCanMove(true);
 			player.setDead(false);
 			player.setDying(false);
 		});
 
-		// Play reset sequence
+		// Create a sequential transition that plays fade out, pause, reset logic, then
+		// fade in
 		SequentialTransition resetSequence = new SequentialTransition(fadeOut, pause, resetLogic, fadeIn);
 		resetSequence.play();
-
 	}
 
 	public static boolean isPass() {
