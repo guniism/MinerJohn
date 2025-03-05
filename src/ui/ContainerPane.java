@@ -1,6 +1,9 @@
 package ui;
 
 import game.GameController;
+
+import javax.swing.Timer;
+
 import entities.Player;
 import game.Item;
 import javafx.scene.canvas.Canvas;
@@ -9,10 +12,10 @@ import javafx.scene.image.Image;
 import javafx.scene.input.*;
 
 public class ContainerPane extends Canvas {
-
+	private Timer infoTextTimer;
     private Image spriteSheet;
     private Image itemSprite;
-    public int currentState;
+    private int currentState;
     private boolean isBag;
     private static final int TILE_WIDTH = 22;
     private static final int TILE_HEIGHT = 22;
@@ -21,7 +24,7 @@ public class ContainerPane extends Canvas {
     private static final int SPRITE_TILE_SIZE = 16;
     private int row;
     private int col;
-    public Item item;
+    private Item item;
 
     public ContainerPane(boolean isBag, int row, int col) {
         this.isBag = isBag;
@@ -61,6 +64,22 @@ public class ContainerPane extends Canvas {
 
     public void setContainerState(int state) {
         this.currentState = state;
+        if (Player.getUsingItem() != null) {
+            GameController.getMainPane().setInfoText(Player.getUsingItem().getItemInfo());
+            GameController.getMainPane().getInfoText().setVisible(true);
+            GameController.getMainPane().getInfoTextFrame().setVisible(true);
+
+            if (infoTextTimer != null && infoTextTimer.isRunning()) {
+                infoTextTimer.stop();
+            }
+
+            infoTextTimer = new Timer(2000, e -> {
+                GameController.getMainPane().getInfoText().setVisible(false);
+                GameController.getMainPane().getInfoTextFrame().setVisible(false);
+            });
+
+            infoTextTimer.start();
+        }
         drawContainer();
     }
 
@@ -138,8 +157,8 @@ public class ContainerPane extends Canvas {
             Player.getInventory().get(sourceRow).set(sourceCol, targetItem);
             Player.getInventory().get(row).set(col, sourceItem);
 
-            Player.containerGrid[sourceRow][sourceCol].loadItemFromInventory();
-            Player.containerGrid[sourceRow][sourceCol].drawContainer();
+            Player.getContainerGrid()[sourceRow][sourceCol].loadItemFromInventory();
+            Player.getContainerGrid()[sourceRow][sourceCol].drawContainer();
 
             this.loadItemFromInventory();
             this.drawContainer();
@@ -151,4 +170,10 @@ public class ContainerPane extends Canvas {
         event.setDropCompleted(true);
         event.consume();
     }
+
+	public Item getItem() {
+		return item;
+	}
+    
+    
 }
