@@ -27,6 +27,10 @@ public class SpriteSheet extends Canvas {
     }
 
     public void setSprite(String filename, int tileWidth, int tileHeight, int r, int c, int mode) {
+    	this.tileWidth = tileWidth;
+        this.tileHeight = tileHeight;
+    	this.setWidth(tileWidth * GameController.getScale());
+        this.setHeight(tileHeight * GameController.getScale());
         String path = ClassLoader.getSystemResource(filename).toString();
         if (!this.spriteSheet.getUrl().equals(path)) {
             this.spriteSheet = new Image(path);
