@@ -794,11 +794,4 @@ public class GamePane extends Pane {
 			
 		}
 	}
-	
-//	public void createPopup(String out,boolean time) {
-//		PixelText tempText = new PixelText("USE 3 "+out);
-//		tempText.setLayoutX(330);
-//		tempText.setLayoutY(280);
-//		mother.getChildren().addAll(bigBar,tempText);
-//	}
 }
