@@ -16,12 +16,10 @@ public abstract class Block extends Canvas {
 
         this.setWidth(SIZE * GameController.getScale());
         this.setHeight(SIZE * GameController.getScale());
-//
+
         GraphicsContext gc = this.getGraphicsContext2D();
         gc.setImageSmoothing(false);
         gc.scale(GameController.getScale(), GameController.getScale());
-
-//        render(gc);
     }
 
     protected abstract void render(GraphicsContext gc);

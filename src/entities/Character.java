@@ -13,9 +13,10 @@ public abstract class Character extends Canvas {
         this.speed = speed;
     }
     
+    // Abstract method for update character
     public abstract void update();
     
-    // Abstract method for drawing character (must be implemented by subclasses)
+    // Abstract method for drawing character
     protected abstract void draw();
 
     public double getX() {
