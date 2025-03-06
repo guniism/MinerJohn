@@ -187,46 +187,52 @@ public class GamePane extends Pane {
 	}
 
 	private void handleMouseClick(MouseEvent event) {
-
-		if (interactBlockClick(event)) {
-			return;
-		}
-		Item usingItem = Player.getUsingItem();
-		if (usingItem == null) {
-			System.out.println("Do nothing");
-			return;
-		}
-		if (usingItem.getItemType() == 1) {
-			setPlayerHealth(player.getHealth() + usingItem.getIncreaseHealth());
-			setPlayerStamina(player.getStamina() + usingItem.getIncreaseStamina());
-			Player.useItem(Player.getUsingItem(), 1);
-
-		}
-		if (usingItem.getRow() == 1 && usingItem.getCol() == 4) {
-			System.out.println("player is Attacking");
-			player.setAttacking(true);
-			player.attack();
-
-			// Play attack sound
-			AudioController swordSound = new AudioController("sword_sfx");
-			swordSound.setVolume(0.8f);
-			swordSound.play();
-		}
-
-		if (player.getStamina() > 0) {
-			// Only execute mining if ladder wasn’t clicked
-			if (usingItem.getRow() == 0 && usingItem.getCol() == 0 && !player.isMining()) {
-				System.out.println("player is Mining");
-				player.setMining(true);
-				player.mine();
-
-				// play mining sound
-				AudioController mineSound = new AudioController("rock_sfx");
-				mineSound.setVolume(0.8f);
-				mineSound.play();
+		if(!player.isDead()) {	
+			if (interactBlockClick(event)) {
+				return;
 			}
-		} else {
-			System.out.println("Player has no stamina!");
+			Item usingItem = Player.getUsingItem();
+			if (usingItem == null) {
+				System.out.println("Do nothing");
+				return;
+			}
+			if (usingItem.getItemType() == 1) {
+				System.out.println("player is Consuming");
+				setPlayerHealth(player.getHealth() + usingItem.getIncreaseHealth());
+				setPlayerStamina(player.getStamina() + usingItem.getIncreaseStamina());
+//		        GameController.getGamePane().getChildren().add(consumingItem);
+				int[] rowColValues = {usingItem.getRow(), usingItem.getCol()};
+				player.setConsumeItemRowCol(rowColValues);
+				player.setConsuming(true);
+				player.consume();
+				Player.useItem(Player.getUsingItem(), 1);
+			}
+			if (usingItem.getRow() == 1 && usingItem.getCol() == 4) {
+				System.out.println("player is Attacking");
+				player.setAttacking(true);
+				player.attack();
+	
+				// Play attack sound
+				AudioController swordSound = new AudioController("sword_sfx");
+				swordSound.setVolume(0.8f);
+				swordSound.play();
+			}
+	
+			if (player.getStamina() > 0) {
+				// Only execute mining if ladder wasn’t clicked
+				if (usingItem.getRow() == 0 && usingItem.getCol() == 0 && !player.isMining()) {
+					System.out.println("player is Mining");
+					player.setMining(true);
+					player.mine();
+	
+					// play mining sound
+					AudioController mineSound = new AudioController("rock_sfx");
+					mineSound.setVolume(0.8f);
+					mineSound.play();
+				}
+			} else {
+				System.out.println("Player has no stamina!");
+			}
 		}
 
 	}
@@ -585,7 +591,6 @@ public class GamePane extends Pane {
 			{
 				setCycleDuration(Duration.seconds(0.1));
 			}
-
 			@Override
 			protected void interpolate(double frac) {
 				if (frac == 1.0) {
@@ -608,30 +613,12 @@ public class GamePane extends Pane {
 				}
 			}
 		};
-
-
 		// Fade in from black (overlay goes from opaque to transparent)
 		FadeTransition fadeIn = new FadeTransition(Duration.seconds(1.5), transitionScreen);
 		fadeIn.setFromValue(1);
 		fadeIn.setToValue(0);
 		fadeIn.setOnFinished(event -> {
 			transitionScreen.setVisible(false);
-//			getChildren().remove(getPlayer());
-//			getChildren().removeAll(blocks);
-//			getChildren().removeAll(monsters);
-//			blocks.clear();
-//			monsters.clear();
-//			generateNextMap();
-//			setPlayerHealth(player.getMaxHealth());
-//			setPlayerStamina(player.getMaxStamina());					
-//			MainPane.setFloorNum(1);
-//			if (!getChildren().contains(player)) {
-//				getChildren().add(player);
-//			}
-//			player.setCanMove(true);
-//			player.setDead(false);
-//			player.setDying(false);
-//			ingamesound.play();
 			player.setCanMove(true);
 			ingamesound.play();
 		});

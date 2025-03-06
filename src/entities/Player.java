@@ -13,6 +13,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import ui.ContainerPane;
+import utils.SpriteSheet;
 import world.Block;
 import world.Ore;
 import world.Pickaxeable;
@@ -22,9 +23,6 @@ public class Player extends Character {
     private final int HEIGHT;
     private final int MAX_HEALTH;
     private final int MAX_STAMINA;
-    private double x;
-    private double y;
-    private int speed;
     private int health;
     private int stamina;
     
@@ -32,6 +30,7 @@ public class Player extends Character {
     private Image miningSpriteSheet;
     private Image attackingSpriteSheet; 
     private Image deathSpriteSheet; 
+    private Image itemSpriteSheet;
     private int frameIndex;
     private final int totalFrames = 8; // 8 frames for walking animation
     private final int frameWidth = 16;
@@ -54,7 +53,6 @@ public class Player extends Character {
     private final int deathFrameHeight = 32;
     private int deathFrameIndex = 0;
     private int deathFrameDelay = 15;
-//    private int deathFrameCounter = 0;
     private boolean isDying = false;
     private boolean isDead = false;
     // Direction
@@ -66,8 +64,8 @@ public class Player extends Character {
     private boolean canMove = true;
     private boolean isMining = false;
     private boolean isAttacking = false;
-    
-    private AnimationTimer animationTimer;
+    private boolean isConsuming = false;
+   
 
     // Animation speed control
     private int frameDelay = 10; // Movement animation speed
@@ -76,16 +74,22 @@ public class Player extends Character {
     private int miningFrameCounter = 0;
     private int attackingFrameDelay = 10; // Attacking animation speed (faster than mining)
     private int attackingFrameCounter = 0;
+    private int consumingFrameCounter = 0;
     
     private static Item usingItem;
     private static ArrayList<ArrayList<Item>> Inventory;
     private static ContainerPane[][] containerGrid = new ContainerPane[5][5];
+    
+    private int[] consumeItemRowCol = {2, 3};
+    
+    
 
+    private GraphicsContext gc = this.getGraphicsContext2D();
     public Player() {
     	super(516, 336, 0);
         WIDTH = frameWidth * GameController.getScale();
         HEIGHT = frameHeight * GameController.getScale();
-        MAX_HEALTH = 1;
+        MAX_HEALTH = 30;
         MAX_STAMINA = 60;
         setSpeed(GameController.getScale());
         setX(1080 / 2 - WIDTH / 2);
@@ -104,6 +108,9 @@ public class Player extends Character {
         
         String deadPath = ClassLoader.getSystemResource("boy-dead.png").toString();
         deathSpriteSheet = new Image(deadPath);
+        
+        String itemPath = ClassLoader.getSystemResource("item-sprite.png").toString();
+        itemSpriteSheet = new Image(itemPath);
         
         // Set canvas to the largest of the animations to accommodate all
         this.setWidth(Math.max(Math.max(WIDTH, miningFrameWidth * GameController.getScale()), 
@@ -180,6 +187,14 @@ public class Player extends Character {
 	@Override
 	public void update() {
 		// TODO Auto-generated method stub
+		if(isConsuming) {
+			consumingFrameCounter++;
+			if (consumingFrameCounter >= 30) {
+				consumingFrameCounter = 0;
+				isConsuming = false;
+				setCanMove(true);
+			}
+		}
         if (isAttacking) {
             attackingFrameCounter++;
             if (attackingFrameCounter >= attackingFrameDelay) {
@@ -236,22 +251,23 @@ public class Player extends Character {
 	
 
     public void draw() {
-        GraphicsContext gc = this.getGraphicsContext2D();
         gc.clearRect(0, 0, this.getWidth(), this.getHeight());
         gc.setImageSmoothing(false);
 
         if (isDying) {
-            drawDeathAnimation(gc);  // Draw death animation when dying
+            drawDeathAnimation();  // Draw death animation when dying
         } else if (isAttacking) {
-            drawAttackingAnimation(gc);  // Draw attacking animation
+            drawAttackingAnimation();  // Draw attacking animation
         } else if (isMining) {
-            drawMiningAnimation(gc);  // Draw mining animation
+            drawMiningAnimation();  // Draw mining animation
+        } else if (isConsuming){
+        	drawConsume();
         } else {
-            drawMovementAnimation(gc);  // Draw normal movement animation
+            drawMovementAnimation();  // Draw normal movement animation
         }
     }
     
-    private void drawMovementAnimation(GraphicsContext gc) {
+    private void drawMovementAnimation() {
         int row = 0;
         
         if (isMoving) {    
@@ -291,7 +307,7 @@ public class Player extends Character {
         }
     }
     
-    private void drawMiningAnimation(GraphicsContext gc) {
+    private void drawMiningAnimation() {
         int row;
         
         switch (lastDirection) {
@@ -333,7 +349,7 @@ public class Player extends Character {
         }
     }
     
-    private void drawAttackingAnimation(GraphicsContext gc) {
+    private void drawAttackingAnimation() {
         int row;
         switch (lastDirection) {
             case "up":
@@ -374,6 +390,23 @@ public class Player extends Character {
         }
     }
     
+    public void drawConsume() {
+    	setCanMove(false);
+        double srcX = frameIndex * frameWidth;
+        double srcY = 3 * frameHeight;
+        
+        // Calculate position to center the player sprite on the canvas
+        double drawX = (this.getWidth() - WIDTH) / 2;
+        double drawY = (this.getHeight() - HEIGHT) / 2;
+
+        int itemWidth = 16;
+        int itemHeight = 16;
+        double itemSrcX = this.consumeItemRowCol[1] * itemWidth;
+        double itemSrcY = this.consumeItemRowCol[0] * itemHeight;
+        gc.drawImage(spriteSheet, srcX, srcY, frameWidth, frameHeight, drawX, drawY, WIDTH, HEIGHT);
+        gc.drawImage(itemSpriteSheet, itemSrcX, itemSrcY, itemWidth, itemWidth, drawX, drawY + 6 * GameController.getScale(), itemWidth * GameController.getScale(), itemWidth * GameController.getScale());
+    }
+    
     public void die() {
 	  if (isDead) return; // Prevent multiple deaths
 	  isDead = true; // Mark player as dead
@@ -407,7 +440,7 @@ public class Player extends Character {
 	}  
 
     
-    private void drawDeathAnimation(GraphicsContext gc) {
+    private void drawDeathAnimation() {
         double srcX = deathFrameIndex * deathFrameWidth;
         double srcY = 0; // Assuming the death animation is in a single row
 
@@ -426,12 +459,22 @@ public class Player extends Character {
             // Normal rendering (no flipping)
             gc.drawImage(deathSpriteSheet, srcX, srcY, deathFrameWidth, deathFrameHeight, 
                          drawX, drawY, deathFrameWidth * GameController.getScale(), deathFrameHeight * GameController.getScale());
+            gc.drawImage(deathSpriteSheet, srcX, srcY, deathFrameWidth, deathFrameHeight, 
+                    drawX, drawY, deathFrameWidth * GameController.getScale(), deathFrameHeight * GameController.getScale());
         }
     }
 
+    public void consume() {
+        if (!isConsuming && !isAttacking && !isMining && canMove) {
+            setCanMove(false);
+            isConsuming  = true;
+            consumingFrameCounter = 0;
+            
+        }
+    }
     
     public void attack() {
-        if (!isAttacking && !isMining && canMove) {
+        if (!isConsuming && !isAttacking && !isMining && canMove) {
             setCanMove(false);
             isAttacking = true;
             
@@ -441,7 +484,7 @@ public class Player extends Character {
     }
     
     public void mine() {
-        if (!isMining && !isAttacking && canMove) {
+        if (!isConsuming && !isMining && !isAttacking && canMove) {
             setCanMove(false);
             isMining = true;
             
@@ -669,5 +712,21 @@ public class Player extends Character {
     public static void setUsingItem(Item usingItem) {
         Player.usingItem = usingItem;
     }
+
+	public void setConsuming(boolean isConsuming) {
+		this.isConsuming = isConsuming;
+	}
+
+	public boolean isConsuming() {
+		return isConsuming;
+	}
+
+
+	public void setConsumeItemRowCol(int[] consumeItemRowCol) {
+		this.consumeItemRowCol = consumeItemRowCol;
+	}
+	
+
+    
     
 }
