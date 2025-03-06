@@ -28,14 +28,14 @@ public class Item {
 		{ 0, 0, 0 }, // 12: Iron_Sword
 		{ 0, 0, 0 }, // 13: Gold_Sword
 		{ 0, 0, 0 }, // 14: Diamond_Sword
-		{ 1, 1, 1 }, // 15: Stone_Ore
-		{ 1, 4, 4 }, // 16: Copper_Ore
+		{ 1, 0, 1 }, // 15: Stone_Ore
+		{ 1, 2, 4 }, // 16: Copper_Ore
 		{ 1, 0, 0 }, // 17: Copper_Bar
-		{ 1, 10, 10 }, // 18: Iron_Ore
+		{ 1, 4, 6 }, // 18: Iron_Ore
 		{ 1, 0, 0 }, // 19: Iron_Bar
-		{ 1, 15, 15 }, // 20: Gold_Ore
+		{ 1, 6, 8 }, // 20: Gold_Ore
 		{ 1, 0, 0 }, // 21: Gold_Bar
-		{ 1, 100, 100 }, // 22: Diamond_Ore
+		{ 1, 8, 15 }, // 22: Diamond_Ore
 		{ 1, 0, 0 }, // 23: Diamond_Bar
 	};
 	private static String[] itemInfo = {
@@ -54,14 +54,14 @@ public class Item {
 	        "Iron Sword: A stronger sword",
 	        "Gold Sword: A powerful sword",
 	        "Diamond Sword: The most powerful sword",
-	        "Stone Ore: + Health, Stamina",
-	        "Copper Ore: + Health, Stamina",
+	        "Stone Ore: +1 Stamina",
+	        "Copper Ore: +2 Health 41 Stamina",
 	        "Copper Bar: Refined copper",
-	        "Iron Ore: + Health, Stamina",
+	        "Iron Ore: +4 Health 6 Stamina",
 	        "Iron Bar: Refined iron",
-	        "Gold Ore: + Health, Stamina",
+	        "Gold Ore: +6 Health 8 Stamina",
 	        "Gold Bar: Refined gold",
-	        "Diamond Ore: + Health, Stamina",
+	        "Diamond Ore: +8 Health 15 Stamina",
 	        "Diamond Bar: Refined diamond"
 	};
 	public Item(int row, int col) {

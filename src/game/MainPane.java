@@ -265,12 +265,11 @@ public class MainPane extends Pane {
 
 	public void setInfoText(String text) {
 		infoText.setText(text);		
-		System.out.println(infoText.getWidth());
 		if(infoText.getWidth() < 104 * GameController.getScale()) {
 			infoTextFrame.setSprite("menu-sprite.png", 108, 10, 58, 0, 1);
 		}
 		else {
-			infoTextFrame.setSprite("menu-sprite.png", 120, 10, 48, 0, 1);
+			infoTextFrame.setSprite("menu-sprite.png", 130, 10, 48, 0, 1);
 		}
 		infoText.setLayoutX(GameController.getScreenWidth() / 2 - infoText.getWidth() / 2);
 		infoText.setLayoutY(GameController.getScreenHeight() * 0.8 - infoText.getHeight() / 2);
