@@ -7,12 +7,12 @@ import javafx.scene.image.Image;
 
 public class SpriteSheet extends Canvas {
     private Image spriteSheet;
-    private int tileWidth, tileHeight;
+    private int tileWidth;
+    private int tileHeight;
 
     public SpriteSheet(String filename, int tileWidth, int tileHeight, int r, int c, int mode) {
         this.tileWidth = tileWidth;
         this.tileHeight = tileHeight;
-
         String path = ClassLoader.getSystemResource(filename).toString();
         this.spriteSheet = new Image(path);
 

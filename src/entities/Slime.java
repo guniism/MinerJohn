@@ -105,7 +105,7 @@ public class Slime extends Monster {
             jumpTowardPlayer();
             canJump = false;
 
-            // ✅ Delay before next jump
+            // Delay before next jump
             new Thread(() -> {
                 try {
                     Thread.sleep(JUMP_DELAY);
@@ -202,7 +202,7 @@ public class Slime extends Monster {
         boolean isColliding = playerX + playerWidth > slimeX && playerX < slimeX + slimeWidth &&
                               playerY + playerHeight > slimeY && playerY < slimeY + slimeHeight;
 
-        if (isColliding && canDamage) {
+        if (isColliding && canDamage && !(lastDirection.equals("death") && frameIndex == totalFrames - 1)) {
             System.out.println("Slime hit the player!");
             GameController.getGamePane().reducePlayerHealth(1);
 
@@ -239,6 +239,7 @@ public class Slime extends Monster {
     public void playDeathAnimation() {
 		// TODO Auto-generated method stub
         jumping = false;
+        canDamage = false;
         setAnimation("death_all");
     }
 
@@ -248,7 +249,7 @@ public class Slime extends Monster {
         gc.clearRect(0, 0, this.getWidth(), this.getHeight());
         gc.setImageSmoothing(false);
 
-        // ✅ Set the correct animation row
+        // Set the correct animation row
         int row;
         if (lastDirection.equals("death")) {
             row = 6; // Death animation row
@@ -263,7 +264,7 @@ public class Slime extends Monster {
         double srcX = frameIndex * FRAME_WIDTH;
         double srcY = row * FRAME_HEIGHT;
 
-        // ✅ Flip horizontally when facing left
+        // Flip horizontally when facing left
         if (lastDirection.equals("left")) {
             gc.save(); // Save the current transformation
             gc.translate(WIDTH, 0); // Move to the right edge

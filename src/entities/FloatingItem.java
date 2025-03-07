@@ -6,8 +6,6 @@ import utils.SpriteSheet;
 
 public class FloatingItem extends Pane {
 	private SpriteSheet spriteSheet;
-//	private int GridX;
-//	private int GridY;
 	private int row;
 	private int col;
 	

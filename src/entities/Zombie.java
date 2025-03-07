@@ -14,8 +14,8 @@ public class Zombie extends Monster {
     private Image spriteSheet, zombieBitingSpriteSheet, zombieDeathSpriteSheet;
     private int frameIndex;
     private int totalFrames = 8;
-    private final int frameWidth = 16;
-    private final int frameHeight = 32;
+    private int frameWidth = 16;
+    private int frameHeight = 32;
     private Player player;
 
     private int frameDelay = 10;
@@ -27,16 +27,16 @@ public class Zombie extends Monster {
     private double randomDx = 0;
     private double randomDy = 0;
     private int randomWalkCounter = 0;
-    private final int randomWalkChangeInterval = 60;
+    private int randomWalkChangeInterval = 60;
 
     private int deadFrameWidth;
     private int deadFrameHeight;
 
     private boolean isDead = false;
     private boolean isBiting = false;
-    private final int bitingTotalFrames = 3;
-    private final int bitingFrameWidth = 16;
-    private final int bitingFrameHeight = 32;
+    private int bitingTotalFrames = 3;
+    private int bitingFrameWidth = 16;
+    private int bitingFrameHeight = 32;
     private int bitingFrameIndex = 0;
     private int bitingFrameDelay = 30;
     private int bitingFrameCounter = 0;

@@ -24,16 +24,7 @@ public class LadderUp extends Block implements Interactable{
 		gc.drawImage(spriteSheet, srcX, srcY, tileWidth, tileHeight, destX, destY, tileWidth, tileHeight);
 	}
 
-//	@Override
-//	public void response() {
-//		// TODO Auto-generated method stub
-//		KeyboardController.isEsc();
-//      	if(!KeyboardController.isBag() && !KeyboardController.isEsc()) {
-//        	KeyboardController.setEsc(true);
-//        	GameController.getMainPane().createEsc(KeyboardController.isEsc());
-//    	}
-//	}
-	
+	@Override
 	public void response() {
 	    // Get player's grid position
 	    int playerFootGridX = (int) ((GameController.getGamePane().getPlayer().getX()

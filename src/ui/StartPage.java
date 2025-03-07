@@ -24,9 +24,9 @@ public class StartPage extends StackPane {
         this.setTranslateY(-23);
         MainMenuButton newGameButton = new MainMenuButton(0);
         //play menu bgm
-        menusound.play();
         menusound.setVolume(0.8f);
         menusound.loop();
+        menusound.play();
         
         newGameButton.setOnMouseClicked(e -> {
             GameController.setUpScene(primaryStage);
@@ -37,7 +37,8 @@ public class StartPage extends StackPane {
 
         MainMenuButton tutorialButton = new MainMenuButton(1);
         tutorialButton.setOnMouseClicked(e -> {
-            System.out.println("EKOB");
+        	TutorialPage.showTutorialPage(primaryStage);
+        	menusound.stop();
         });
 
         MainMenuButton exitButton = new MainMenuButton(2);

@@ -23,9 +23,4 @@ public abstract class Block extends Canvas {
     }
 
     protected abstract void render(GraphicsContext gc);
-    
-    
-	public int size() {
-		return SIZE;
-	}
 }

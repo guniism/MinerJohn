@@ -55,7 +55,7 @@ public class Item {
 	        "Gold Sword: A powerful sword",
 	        "Diamond Sword: The most powerful sword",
 	        "Stone Ore: +1 Stamina",
-	        "Copper Ore: +2 Health 41 Stamina",
+	        "Copper Ore: +2 Health 4 Stamina",
 	        "Copper Bar: Refined copper",
 	        "Iron Ore: +4 Health 6 Stamina",
 	        "Iron Bar: Refined iron",

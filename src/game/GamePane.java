@@ -45,7 +45,6 @@ public class GamePane extends Pane {
 	private List<Monster> monsters;
 	private int ladderX;
 	private int ladderY;
-	private boolean end;
 	private AudioController ingamesound = new AudioController("ingamebgm_sfx");
 
 	public GamePane() {
@@ -55,29 +54,25 @@ public class GamePane extends Pane {
 		this.getChildren().add(this.gameMap);
 		this.playerCenterAbsX = this.player.getX() + this.getLayoutX() - 16 * GameController.getScale();
 		this.playerCenterAbsY = this.player.getY() + this.getLayoutY() - 8 * GameController.getScale();
-		
-		
+	
 		ingamesound.setVolume(0.8f);
-		ingamesound.play();
 		ingamesound.loop();
+		ingamesound.play();
+		
 
 		transitionScreen = new Rectangle();
 		transitionScreen.setFill(Color.BLACK);
 		transitionScreen.setOpacity(0);
 		transitionScreen.setViewOrder(-1000);
 		transitionScreen.setVisible(false);
-//		this.getChildren().add(transitionScreen);
-//		GameController.getMainPane().getChildren().add(transitionScreen);
 
 		generateNextMap();
 		
 		setupMouseHandler();
 		startTimer();
-
 	}
 
 	private void generateNextMap() {
-		
 		Random rand = new Random();
 		this.gameMap.setMap(rand.nextInt(3) + 1);
 
@@ -108,12 +103,11 @@ public class GamePane extends Pane {
 						continue;
 					}
 					int randomValue = rand.nextInt(100);
-
-					int p1 = 90;
-					int p2 = 4;
-					int p3 = 3;
-					int p4 = 2;
-					int p5 = 1;
+					int p1 = 86;
+					int p2 = 5;
+					int p3 = 4;
+					int p4 = 3;
+					int p5 = 2;
 
 					if (randomValue < p1) {
 						this.mapBlock[i][j] = 0;
@@ -145,15 +139,6 @@ public class GamePane extends Pane {
 			}
 		}
 
-		for (int i = 0; i < mapBlock.length; i++) {
-			String tmp = "";
-			for (int j = 0; j < mapBlock[0].length; j++) {
-				tmp += this.mapBlock[i][j] + " ";
-				if (this.mapBlock[i][j] == 1) {
-				}
-			}
-			System.out.println(tmp);
-		}
 
 		int randomLadder = rand.nextInt(blocks.size());
 		while (!(blocks.get(randomLadder) instanceof Pickaxeable)) {
@@ -161,7 +146,7 @@ public class GamePane extends Pane {
 		}
 		int TargetLadderX = (int) (blocks.get(randomLadder).getLayoutX() / GameController.getScale() / 16);
 		int TargetLadderY = (int) (blocks.get(randomLadder).getLayoutY() / GameController.getScale() / 16);
-		System.out.println(TargetLadderX + " " + TargetLadderY);
+//		System.out.println(TargetLadderX + " " + TargetLadderY);
 		this.ladderX = TargetLadderX;
 		this.ladderY = TargetLadderY;
 
@@ -200,12 +185,16 @@ public class GamePane extends Pane {
 				System.out.println("player is Consuming");
 				setPlayerHealth(player.getHealth() + usingItem.getIncreaseHealth());
 				setPlayerStamina(player.getStamina() + usingItem.getIncreaseStamina());
-//		        GameController.getGamePane().getChildren().add(consumingItem);
 				int[] rowColValues = {usingItem.getRow(), usingItem.getCol()};
 				player.setConsumeItemRowCol(rowColValues);
 				player.setConsuming(true);
 				player.consume();
 				Player.useItem(Player.getUsingItem(), 1);
+				
+				//Play consume sound
+				AudioController consumeSound = new AudioController("consume_sfx");
+				consumeSound.setVolume(0.8f);
+				consumeSound.play();
 			}
 			if (usingItem.getRow() == 1 && usingItem.getCol() == 4) {
 				System.out.println("player is Attacking");
@@ -266,8 +255,7 @@ public class GamePane extends Pane {
 				attempts++;
 			}
 			if (attempts >= MAX_ATTEMPTS) {
-				System.out.println("ไม่พบตำแหน่ง spawn สำหรับ Slime หลัง " + MAX_ATTEMPTS + " ครั้ง");
-				continue; // ข้ามการ spawn monster นี้
+				continue; // Skip spawn monster
 			}
 			mapMonster[slimeY][slimeX] = -3;
 			int drawX = slimeX * GameController.getScale() * 16;
@@ -294,7 +282,6 @@ public class GamePane extends Pane {
 				attempts++;
 			}
 			if (attempts >= MAX_ATTEMPTS) {
-				System.out.println("ไม่พบตำแหน่ง spawn สำหรับ Zombie หลัง " + MAX_ATTEMPTS + " ครั้ง");
 				continue;
 			}
 			mapMonster[zombieY][zombieX] = -3;
@@ -396,7 +383,6 @@ public class GamePane extends Pane {
 		this.player.setY(this.player.getY() + dy);
 		this.player.setLayoutX(this.player.getX());
 		this.player.setLayoutY(this.player.getY());
-//		adjustViewOrder();
 
 		// Floating item
 		Iterator<FloatingItem> iterator = floatingItems.iterator();
@@ -412,7 +398,6 @@ public class GamePane extends Pane {
 					/ 16);
 
 			if (Math.abs(playerFootGridX - itemCenGridX) <= 1 && Math.abs(playerFootGridY - itemCenGridY) <= 1) {
-//				System.out.println("start follow");
 				double itemX = (item.getLayoutX() + 8 * GameController.getScale());
 				double itemY = (item.getLayoutY() + 8 * GameController.getScale());
 
@@ -445,18 +430,6 @@ public class GamePane extends Pane {
 			Platform.runLater(() -> monster.update());
 		}
 
-//		if (player.getHealth() <= 0 && !player.isDying()) {
-//			// Trigger the death animation. When it's complete, reset the game.
-//	        GameController.getGamePane().getIngamesound().stop();
-//	        //play gameover sound
-//	        AudioController gameoverSound = new AudioController("gameover_sfx");
-//	        gameoverSound.setVolume(0.7f);
-//	        gameoverSound.play();
-//			player.die(() -> {
-//				resetGame();
-//			});
-//			return; // Skip further update processing while death animation plays
-//		}
 		adjustMonsterViewOrder();
 	}
 
@@ -568,11 +541,10 @@ public class GamePane extends Pane {
 		fadeOut.setOnFinished(event -> {
 			transitionScreen.setVisible(false);
 			player.setCanMove(true);
-		});
-
+		});	
 		SequentialTransition transition = new SequentialTransition(fadeIn, pause, resetFloor, fadeOut);
 		transition.play();
-
+		
 	}
 
 	public void resetGame() {
@@ -645,7 +617,6 @@ public class GamePane extends Pane {
 
 	public void setPlayerHealth(int health) {
 		player.setHealth(health);
-//		GameController.getMainPane().createResult();
 		GameController.getMainPane().setHBar(player.getHealth());
 	}
 
